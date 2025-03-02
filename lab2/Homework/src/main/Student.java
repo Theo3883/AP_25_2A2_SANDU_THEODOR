@@ -1,11 +1,15 @@
 package main;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a student
  * Extends the Person class with additional student-specific information.
  */
 public class Student extends Person {
     private final String registrationNumber;
+    private List<Project> projects;
 
     /**
      * Constructs a new Student with the specified name, date of birth, and registration number.
@@ -17,6 +21,7 @@ public class Student extends Person {
     public Student(String name, String dateOfBirth, String registrationNumber) {
         super(name, dateOfBirth);
         this.registrationNumber = registrationNumber;
+        this.projects = new ArrayList<>();
     }
 
     /**
@@ -26,6 +31,25 @@ public class Student extends Person {
      */
     public String getRegistrationNumber() {
         return this.registrationNumber;
+    }
+
+    /**
+     * Gets the student's project preferences.
+     *
+     * @return The list of projects preferred by this student
+     */
+    public List<Project> getProjects() {
+        return projects;
+    }
+
+
+    /**
+     * Sets the student's project preferences.
+     *
+     * @param projects The list of projects preferred by this student
+     */
+    public void setPreferences(List<Project> projects) {
+        this.projects = projects;
     }
 
     /**
