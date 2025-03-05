@@ -30,6 +30,7 @@ public class Student {
      * @return The student's name
      */
     public String getName() {
+
         return name;
     }
 
@@ -39,6 +40,7 @@ public class Student {
      * @return The student's age
      */
     public int getAge() {
+
         return age;
     }
 

@@ -44,6 +44,7 @@ public class Project {
      */
     @Override
     public String toString() {
+
         return "Project{" + "title='" + title + '\'' + ", type=" + type + '}';
     }
 }

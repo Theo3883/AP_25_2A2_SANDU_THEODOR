@@ -29,7 +29,6 @@ public class Main {
         return graph;
     }
 
-
     public static boolean hasClique(boolean[][] graph, int n, int k) {
         List<Integer> currentClique = new ArrayList<>();
         return findClique(graph, n, k, 0, currentClique);
