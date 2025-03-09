@@ -19,7 +19,6 @@ public class Person {
         this.name = name;
         this.dateOfBirth = dateOfBirth;
     }
-
     /**
      * Gets the name of this person.
      *
