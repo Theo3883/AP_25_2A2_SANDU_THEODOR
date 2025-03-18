@@ -1,12 +1,13 @@
-package main;
+package org.example;
 
-public class Airliner extends Aircraft implements CargoCapable, PassengerCapable{
-    private final int passengerCapacity;
+public class Freighter extends Aircraft implements CargoCapable,PassengerCapable {
+
+    public final int maximumPayload;
     private final int  wingSpan;
 
-    public Airliner(String name, String model, int tailNumber, int passengerCapacity, int wingSpan) {
+    public Freighter(String name, String model, int tailNumber,int maxPayload, int wingSpan) {
         super(name, model, tailNumber);
-        this.passengerCapacity = passengerCapacity;
+        this.maximumPayload = maxPayload;
         this.wingSpan = wingSpan;
     }
 
@@ -16,22 +17,21 @@ public class Airliner extends Aircraft implements CargoCapable, PassengerCapable
 
     @Override
     public boolean isPassengerCapable() {
-        return true;
-    }
-
-
-    @Override
-    public int getPassengerCapacity() {
-        return this.passengerCapacity;
-    }
-
-    @Override
-    public boolean isCargoCapable() {
         return false;
     }
 
     @Override
-    public int getCargoCapacity() {
+    public int getPassengerCapacity() {
         return 0;
+    }
+
+    @Override
+    public boolean isCargoCapable() {
+        return true;
+    }
+
+    @Override
+    public int getCargoCapacity() {
+        return this.maximumPayload;
     }
 }

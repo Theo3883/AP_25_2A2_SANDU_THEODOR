@@ -1,4 +1,4 @@
-package main;
+package org.example;
 
 abstract class Aircraft {
     String name;
