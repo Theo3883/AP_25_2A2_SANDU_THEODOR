@@ -1,0 +1,15 @@
+# Image Repository Backup
+# Created: 2025-03-24T12:48:23.079784900
+# Format: NAME|TIME|PATH|TAGS
+
+hexv2_large|12:48:12.4068277|C:\Users\teosa\Desktop\all\diag\hexv2_large.png|diag,hex,image,media
+brd|12:48:12.4098348|C:\Users\teosa\Desktop\all\docs\doc\brd.jpeg|doc,media,photo
+bul spate|12:48:12.4098348|C:\Users\teosa\Desktop\all\docs\doc\bul spate.JPEG|doc,bul
+bul|12:48:12.4098348|C:\Users\teosa\Desktop\all\docs\doc\bul.jpeg|doc
+racovery key plaid|12:48:12.4098348|C:\Users\teosa\Desktop\all\docs\doc\racovery key plaid.png|doc,rac,image
+Anexa IV|12:48:12.4098348|C:\Users\teosa\Desktop\all\docs\dosar facultate\Anexa IV.jpeg|dosar facultate,Ane,photo,picture
+carnet|12:48:12.4098348|C:\Users\teosa\Desktop\all\Lan Shared\carnet.png|Lan Shared,car,photo
+mare|12:48:12.4098348|C:\Users\teosa\Desktop\all\mare.png|all,mar,image
+me - csgo|12:48:12.4098348|C:\Users\teosa\Desktop\all\me - csgo.jpeg|all,me 
+poza theo|12:48:12.4098348|C:\Users\teosa\Desktop\all\poza theo.jpg|all,poz,picture
+Poza Theodor Sandu|12:48:12.4098348|C:\Users\teosa\Desktop\all\Poza Theodor Sandu.jpg|all,Poz,image

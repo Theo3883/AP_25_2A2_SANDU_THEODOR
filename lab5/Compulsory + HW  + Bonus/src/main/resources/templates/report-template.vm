@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Repository Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .report-info {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .image-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fafafa;
+        }
+        .image-details {
+            display: flex;
+            justify-content: space-between;
+        }
+        .image-info {
+            flex: 1;
+        }
+        .image-preview {
+            flex: 1;
+            text-align: center;
+        }
+        img {
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Image Repository Report</h1>
+    <div class="report-info">Generated on: $reportDate</div>
+
+    #if($images.size() > 0)
+        <div class="image-count">Total images: $images.size()</div>
+
+        #foreach($image in $images)
+            <div class="image-card">
+                <div class="image-details">
+                    <div class="image-info">
+                        <h3>$image.name()</h3>
+                        <p><strong>Time:</strong> $image.date().format('HH:mm:ss')</p>
+                        <p><strong>Path:</strong> $image.path()</p>
+                        <p><strong>Tags:</strong>
+                            #if($image.tags().size() > 0)
+                                $image.tags().join(", ")
+                            #else
+                                No tags
+                            #end
+                        </p>
+                    </div>
+                    <div class="image-preview">
+                        #set($fileExists = true)
+                        #set($filePath = $image.path())
+                        <img src="file:///$filePath" alt="$image.name()"
+                             onerror="this.onerror=null; this.src=''; this.alt='Image not found'; this.style.border='1px solid red';">
+                    </div>
+                </div>
+            </div>
+        #end
+    #else
+        <p>No images in the repository.</p>
+    #end
+</div>
+</body>
+</html>
