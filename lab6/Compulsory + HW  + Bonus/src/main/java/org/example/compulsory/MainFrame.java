@@ -36,7 +36,9 @@ public class MainFrame extends JFrame {
         final MainFrame frame;
         final JButton exitBtn = new JButton("Exit");
         final JButton loadBtn = new JButton("Load Game");
+        final JButton saveBtn = new JButton("Save Game");
         final JButton clearBtn = new JButton("Clear");
+        final JButton saveBtnPng = new JButton("Save as PNG");
 
         private void exitGame(java.awt.event.ActionEvent e) {
             frame.dispose();
@@ -52,16 +54,22 @@ public class MainFrame extends JFrame {
             setLayout(new GridLayout(1, 3));
             add(exitBtn);
             add(loadBtn);
+            add(saveBtn);
             add(clearBtn);
+            add(saveBtnPng);
 
             exitBtn.addActionListener(this::exitGame);
             clearBtn.addActionListener(e -> frame.canvas.clear());
+            saveBtnPng.addActionListener(e -> frame.canvas.saveAsPng(null));
+            saveBtn.addActionListener(e -> frame.canvas.saveGame());
+            loadBtn.addActionListener(e -> frame.canvas.loadGame());
         }
     }
 
     ConfigPanel configPanel;
     ControlPanel controlPanel;
     DrawingPanel canvas;
+    Score scorePanel;
 
     public MainFrame() {
         super("My Drawing Application");
@@ -78,11 +86,17 @@ public class MainFrame extends JFrame {
         canvas = new DrawingPanel(this);
         controlPanel = new ControlPanel(this);
         configPanel = new ConfigPanel(this);
+        scorePanel = new Score(this);
+
+        //top of the game
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.add(configPanel, BorderLayout.CENTER);
+        topPanel.add(scorePanel, BorderLayout.EAST);
 
         // Add components with proper BorderLayout constraints
         add(canvas, BorderLayout.CENTER);
         add(controlPanel, BorderLayout.SOUTH);
-        add(configPanel, BorderLayout.NORTH);
+        add(topPanel, BorderLayout.NORTH);
 
         // Set size and make pack
         setSize(500, 500);
