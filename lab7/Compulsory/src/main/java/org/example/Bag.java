@@ -1,0 +1,30 @@
+package org.example;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+
+public class Bag {
+    private final List<Tile> tiles = new ArrayList<Tile>();
+    Random random = new Random();
+
+    public Bag() {
+        for(char c='a'; c<='z'; c++) {
+            tiles.add(new Tile(c, random.nextInt(100)));
+        }
+    }
+
+    public synchronized List<Tile> extractTiles(int howMany) {
+        List <Tile> extrated = new ArrayList<>();
+        for(int i=0; i<howMany; i++) {
+            if(tiles.isEmpty()) {
+                break;
+            }
+            int index = random.nextInt(tiles.size());
+            extrated.add(tiles.get(index));
+            tiles.remove(index);
+        }
+        return extrated;
+    }
+}

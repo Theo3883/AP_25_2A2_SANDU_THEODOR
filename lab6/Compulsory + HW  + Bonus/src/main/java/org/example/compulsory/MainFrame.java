@@ -2,6 +2,7 @@ package org.example.compulsory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 public class MainFrame extends JFrame {
 
@@ -39,6 +40,7 @@ public class MainFrame extends JFrame {
         final JButton saveBtn = new JButton("Save Game");
         final JButton clearBtn = new JButton("Clear");
         final JButton saveBtnPng = new JButton("Save as PNG");
+        final JButton geminiBtn = new JButton("Gemini");
 
         private void exitGame(java.awt.event.ActionEvent e) {
             frame.dispose();
@@ -51,18 +53,49 @@ public class MainFrame extends JFrame {
         }
 
         private void init() {
-            setLayout(new GridLayout(1, 3));
+            setLayout(new GridLayout(1, 6)); // Update to accommodate 6 buttons
             add(exitBtn);
             add(loadBtn);
             add(saveBtn);
             add(clearBtn);
             add(saveBtnPng);
+            add(geminiBtn);
 
             exitBtn.addActionListener(this::exitGame);
             clearBtn.addActionListener(e -> frame.canvas.clear());
             saveBtnPng.addActionListener(e -> frame.canvas.saveAsPng(null));
             saveBtn.addActionListener(e -> frame.canvas.saveGame());
             loadBtn.addActionListener(e -> frame.canvas.loadGame());
+            geminiBtn.addActionListener(e -> askGemini());
+        }
+
+        private void askGemini() {
+
+
+            String prompt = "You are the blue player what is the next move to connect all dots with minimize the distance. Give me only the X and Y of the start and finish for the JavaFx as pixels. Give me only the points, no additional text, or other caracters. use only spaces";
+
+            if (prompt == null || prompt.trim().isEmpty()) {
+                return;
+            }
+
+            try {
+
+                String tempImagePath = System.getProperty("user.dir") + "/temp_game_image.png";
+                frame.canvas.saveAsPng(tempImagePath);
+
+
+                GeminiService geminiService = new GeminiService();
+                String response = geminiService.getGeminiResponseWithImage(prompt, tempImagePath);
+
+                System.out.println(response);
+                frame.canvas.processGeminiMove(response);
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(frame,
+                        "Error: " + e.getMessage(),
+                        "Gemini API Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -103,11 +136,21 @@ public class MainFrame extends JFrame {
         pack();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // Only create one instance, not two
         SwingUtilities.invokeLater(() -> {
             MainFrame frame = new MainFrame();
             frame.setVisible(true);
         });
+        GeminiService geminiService = new GeminiService();
+
+        /*String promt = "You are the blue player what is the next move to connect all dots with minimize the distance. Give me only the X and Y of the start and finish for the JavaFx. Give me only the points, no additional text";
+        String imagePath = "testimg.png";
+
+
+        // Process the file automatically
+        String result = geminiService.getGeminiResponseWithImage(promt, imagePath);*/
+
+        //System.out.println(result);
     }
 }

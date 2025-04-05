@@ -41,6 +41,7 @@ public class GameState {
             this.x = x;
             this.y = y;
             this.selected = selected;
+            System.out.println("Point: " + x + ", " + y);
         }
 
         public boolean isSelected() { return selected; }

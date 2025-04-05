@@ -81,6 +81,8 @@ public class DrawingPanel extends JPanel {
                 i--; // Try again if dot position is already taken
             }
         }
+        System.out.println("PlayerOneDots: " + playerOneDots);
+        System.out.println("PlayerTwoDots: " + playerTwoDots);
 
         // Draw the dots
         drawAllDots();
@@ -204,7 +206,7 @@ public class DrawingPanel extends JPanel {
     }
 
     private Point findNearestDot(Point clickPoint, Map<Point, Boolean> playerDots) {
-        final int CLICK_THRESHOLD = 15; // Sensitivity in pixels
+        final int CLICK_THRESHOLD = 80; // Sensitivity in pixels
 
         // Look for the closest dot within threshold
         return playerDots.keySet().stream()
@@ -447,6 +449,61 @@ public class DrawingPanel extends JPanel {
                     "Load Error",
                     JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
+        }
+    }
+
+
+    public void processGeminiMove(String response) {
+        try {
+            // Clean and parse the response
+            response = response.trim();
+            String[] coordinates = response.split("\\s+");
+
+
+            if (coordinates.length < 4) {
+                JOptionPane.showMessageDialog(this,
+                        "Invalid Gemini response format: " + response,
+                        "Format Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Parse coordinates
+            int x1 = Integer.parseInt(coordinates[0]);
+            int y1 = Integer.parseInt(coordinates[1]);
+            int x2 = Integer.parseInt(coordinates[2]);
+            int y2 = Integer.parseInt(coordinates[3]);
+
+            // Find the closest blue dots to these coordinates
+            Point nearestToStart = findNearestDot(new Point(x1, y1), playerTwoDots);
+            Point nearestToEnd = findNearestDot(new Point(x2, y2), playerTwoDots);
+
+            if (nearestToStart != null && nearestToEnd != null) {
+
+                drawLine(nearestToStart.x, nearestToStart.y, nearestToEnd.x, nearestToEnd.y, Color.BLUE);
+
+                updateScore(nearestToStart, nearestToEnd, false);
+
+
+                isPlayerOneTurn = true;
+
+                repaint();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Could not find valid blue dots near the suggested coordinates",
+                        "Move Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Error parsing Gemini response: " + e.getMessage(),
+                    "Parse Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "Error processing Gemini move: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
