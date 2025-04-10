@@ -28,6 +28,8 @@ public class Game {
         }
     }
 
+
+
     public void addPlayer(Player player) {
         players.add(player);
         player.setGame(this);
@@ -41,16 +43,26 @@ public class Game {
             thread.start();
         }
 
+        Timekeeper timekeeper = new Timekeeper(threads, 60000); // 20 seconds
+        Thread timekeeperThread = new Thread(timekeeper);
+        timekeeperThread.start();
+
         for (Thread thread : threads) {
             try {
                 thread.join();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
 
+        try {
+            timekeeperThread.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
         Player winner = players.stream().max((p1, p2) -> Integer.compare(p1.getScore(), p2.getScore())).orElse(null);
-        if (winner != null) {
+        if (winner != null && winner.getScore() > 0) {
             System.out.println("The winner is " + winner.getName() + " with a score of " + winner.getScore());
         } else {
             System.out.println("No winner.");

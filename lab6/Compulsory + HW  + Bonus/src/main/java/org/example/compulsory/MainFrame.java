@@ -72,7 +72,7 @@ public class MainFrame extends JFrame {
         private void askGemini() {
 
 
-            String prompt = "You are the blue player what is the next move to connect all dots with minimize the distance. Give me only the X and Y of the start and finish for the JavaFx as pixels. Give me only the points, no additional text, or other caracters. use only spaces";
+            String prompt = "You are the blue player what is the next move to connect all dots with minimize the distance. Give me only the X and Y of the start and finish for the JavaFx as pixels. Give me only the points, no additional text, or other characters. use only spaces";
 
             if (prompt == null || prompt.trim().isEmpty()) {
                 return;

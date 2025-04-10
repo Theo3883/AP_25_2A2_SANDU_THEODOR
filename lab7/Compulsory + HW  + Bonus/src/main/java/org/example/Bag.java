@@ -16,15 +16,15 @@ public class Bag {
     }
 
     public synchronized List<Tile> extractTiles(int howMany) {
-        List <Tile> extrated = new ArrayList<>();
-        for(int i=0; i<howMany; i++) {
-            if(tiles.isEmpty()) {
+        List<Tile> extracted = new ArrayList<>();
+        for (int i = 0; i < howMany; i++) {
+            if (tiles.isEmpty()) {
                 break;
             }
             int index = random.nextInt(tiles.size());
-            extrated.add(tiles.get(index));
+            extracted.add(tiles.get(index));
             tiles.remove(index);
         }
-        return extrated;
+        return extracted;
     }
 }
