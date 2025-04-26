@@ -17,11 +17,13 @@ public class Player implements Runnable {
     public Player(String name) {
         this.name = name;
         this.score = 0;
+        this.running = true;
     }
 
     private boolean submitWord() throws InterruptedException {
         List<Tile> extracted = game.getBag().extractTiles(7);
         if (extracted.size() < 7) {
+            running = false;
             return false;
         }
 
@@ -32,18 +34,19 @@ public class Player implements Runnable {
 
         for (String word : possibleWords) {
             if (game.getDictionary().isWord(word)) {
+                int wordScore = calculateWordScore(word, extracted);
                 game.getBoard().addWord(this, word);
-                score += calculateWordScore(word, extracted);
+                score += wordScore;
                 removeUsedTiles(extracted, word);
-                System.out.println("Player " + name + " found the word: " + word);
+                System.out.println("Player " + name + " found the word: " + word + " (" + wordScore + ")");
                 return true;
             }
         }
 
         game.getBag().extractTiles(extracted.size());
+        running = false;
         return false;
     }
-
 
     private void generateCombinations(String prefix, List<Tile> tiles, List<String> combinations) {
         if (!game.getDictionary().getPrefixTree().isPrefix(prefix)) {
@@ -83,17 +86,16 @@ public class Player implements Runnable {
 
     @Override
     public void run() {
-        running = true;
         while (running) {
             game.waitForTurn(this);
             try {
                 if (!submitWord()) {
-                    if (game.getBag().extractTiles(7).isEmpty()) {
-                        running = false; // Stop if no tiles are left
+                    if (game.getBag().extractTiles(7).size() < 7) {
+                        running = false;
                     }
                 }
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                Thread.currentThread().interrupt();
             }
             game.nextTurn();
         }

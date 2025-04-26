@@ -34,6 +34,15 @@ public class Game {
         player.setGame(this);
     }
 
+    public boolean arePlayersOutOfMoves() {
+        for (Player player : players) {
+            if (player.isRunning()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void play() {
         List<Thread> threads = new ArrayList<>();
         for (Player player : players) {
@@ -42,9 +51,23 @@ public class Game {
             thread.start();
         }
 
-        Timekeeper timekeeper = new Timekeeper(threads, 60000);
+        Timekeeper timekeeper = new Timekeeper(threads, 6000);
         Thread timekeeperThread = new Thread(timekeeper);
         timekeeperThread.start();
+
+        while (true) {
+            if (arePlayersOutOfMoves()) {
+                System.out.println("No more moves available. Ending game.");
+                timekeeperThread.interrupt();
+                break;
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
 
         for (Thread thread : threads) {
             try {
@@ -59,6 +82,13 @@ public class Game {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+
+        System.out.println("=======");
+        System.out.println("Scores: ");
+        for (Player player : players) {
+            System.out.println(player.getName() + " : " + player.getScore());
+        }
+        System.out.println("=======");
 
         Player winner = players.stream().max(Comparator.comparingInt(Player::getScore)).orElse(null);
         if (winner != null && winner.getScore() > 0) {
