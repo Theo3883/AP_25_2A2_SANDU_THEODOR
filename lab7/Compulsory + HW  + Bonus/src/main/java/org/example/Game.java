@@ -3,6 +3,7 @@ package org.example;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Getter
@@ -27,8 +28,6 @@ public class Game {
             }
         }
     }
-
-
 
     public void addPlayer(Player player) {
         players.add(player);
@@ -61,7 +60,7 @@ public class Game {
             Thread.currentThread().interrupt();
         }
 
-        Player winner = players.stream().max((p1, p2) -> Integer.compare(p1.getScore(), p2.getScore())).orElse(null);
+        Player winner = players.stream().max(Comparator.comparingInt(Player::getScore)).orElse(null);
         if (winner != null && winner.getScore() > 0) {
             System.out.println("The winner is " + winner.getName() + " with a score of " + winner.getScore());
         } else {

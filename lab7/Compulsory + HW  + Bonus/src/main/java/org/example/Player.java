@@ -20,8 +20,12 @@ public class Player implements Runnable {
     }
 
     private boolean submitWord() throws InterruptedException {
-        List<Tile> extracted = game.getBag().extractTiles(7);
-        if (extracted.isEmpty()) {
+        //List<Tile> extracted = game.getBag().extractTiles(7);
+        List<Tile> extracted = new ArrayList<>(List.of(
+                new Tile('a', 3), new Tile('a', 1), new Tile('p', 3),
+                new Tile('p', 3), new Tile('l', 1), new Tile('e', 1), new Tile('c', 3)
+        ));
+        if (extracted.size() < 7) {
             return false;
         }
 
@@ -29,12 +33,11 @@ public class Player implements Runnable {
         generateCombinations("", extracted, possibleWords);
 
         for (String word : possibleWords) {
-            Thread.sleep(1);
-            System.out.println("Player " + name + " is trying word: " + word);
             if (game.getDictionary().isWord(word)) {
                 game.getBoard().addWord(this, word);
                 score += calculateWordScore(word, extracted);
                 removeUsedTiles(extracted, word);
+                System.out.println("Player " + name + " found the word: " + word);
                 return true; // Word successfully submitted
             }
         }
@@ -52,7 +55,7 @@ public class Player implements Runnable {
             Tile tile = tiles.get(i);
             List<Tile> remaining = new ArrayList<>(tiles);
             remaining.remove(i);
-            generateCombinations(prefix + tile.getLetter(), remaining, combinations);
+            generateCombinations(prefix + tile.letter(), remaining, combinations);
         }
     }
 
@@ -60,8 +63,8 @@ public class Player implements Runnable {
         int score = 0;
         for (char c : word.toCharArray()) {
             for (Tile tile : tiles) {
-                if (tile.getLetter() == c) {
-                    score += tile.getPoints();
+                if (tile.letter() == c) {
+                    score += tile.points();
                     tiles.remove(tile);
                     break;
                 }
@@ -72,7 +75,7 @@ public class Player implements Runnable {
 
     private void removeUsedTiles(List<Tile> extracted, String word) {
         for (char c : word.toCharArray()) {
-            extracted.removeIf(tile -> tile.getLetter() == c);
+            extracted.removeIf(tile -> tile.letter() == c);
         }
     }
 
