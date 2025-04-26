@@ -11,21 +11,27 @@ public class Bag {
 
     public Bag() {
         for(char c='a'; c<='z'; c++) {
-            tiles.add(new Tile(c, random.nextInt(10)));
+            int points = random.nextInt(10);
+            addTiles(new Tile(c, points), 10);
+        }
+    }
+
+    private void addTiles(Tile tile, int amount) {
+        for(int i = 0; i < amount; i++) {
+            tiles.add(tile);
         }
     }
 
     public synchronized List<Tile> extractTiles(int howMany) {
-        List<Tile> extracted = new ArrayList<>();
+        List<Tile> extractedTile = new ArrayList<>();
         for (int i = 0; i < howMany; i++) {
             if (tiles.isEmpty()) {
                 break;
             }
-
             int index = random.nextInt(tiles.size());
-            extracted.add(tiles.get(index));
+            extractedTile.add(tiles.get(index));
             tiles.remove(index);
         }
-        return extracted;
+        return extractedTile;
     }
 }

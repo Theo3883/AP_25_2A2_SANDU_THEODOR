@@ -1,5 +1,7 @@
 package org.example;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +10,11 @@ import java.util.Map;
 public class PrefixTree {
     private final Node root = new Node();
 
+    private static class Node {
+        private final Map<Character, Node> children = new HashMap<>();
+        private boolean isWord = false;
+    }
+
     public void insert(String word) {
         Node current = root;
         for (char c : word.toCharArray()) {
@@ -15,6 +22,28 @@ public class PrefixTree {
             current = current.children.get(c);
         }
         current.isWord = true;
+    }
+
+    public boolean isPrefix(String prefix) {
+        Node current = root;
+        for (char c : prefix.toCharArray()) {
+            if (!current.children.containsKey(c)) {
+                return false;
+            }
+            current = current.children.get(c);
+        }
+        return true;
+    }
+
+    public boolean isWord(String word) {
+        Node current = root;
+        for (char c : word.toCharArray()) {
+            if (!current.children.containsKey(c)) {
+                return false;
+            }
+            current = current.children.get(c);
+        }
+        return current.isWord;
     }
 
     public List<String> getWordsWithPrefix(String prefix) {
@@ -43,8 +72,16 @@ public class PrefixTree {
         }
     }
 
-    private static class Node {
-        private final Map<Character, Node> children = new HashMap<>();
-        private boolean isWord = false;
+    public void printTree() {
+        printNode(root, "");
+    }
+
+    private void printNode(Node node, String prefix) {
+        if (node.isWord) {
+            System.out.println("Word: " + prefix);
+        }
+        for (Map.Entry<Character, Node> entry : node.children.entrySet()) {
+            printNode(entry.getValue(), prefix + entry.getKey());
+        }
     }
 }

@@ -1,11 +1,13 @@
 package org.example;
 
+import lombok.Getter;
+
 import java.nio.file.*;
 import java.util.*;
 
 public class Dictionary {
-    private final Set<String> words = new HashSet<>();
-    private final PrefixTree prefixTree = new PrefixTree();
+    @Getter
+    final PrefixTree prefixTree = new PrefixTree();
 
     public Dictionary() {
         try {
@@ -13,7 +15,6 @@ public class Dictionary {
             for (String word : wordList) {
                 String trimmed = word.trim().toLowerCase();
                 if (!trimmed.isEmpty()) {
-                    words.add(trimmed);
                     prefixTree.insert(trimmed);
                 }
             }
@@ -23,7 +24,7 @@ public class Dictionary {
     }
 
     public boolean isWord(String word) {
-        return words.contains(word);
+        return prefixTree.isWord(word);
     }
 
     public List<String> getWordsWithPrefix(String prefix) {

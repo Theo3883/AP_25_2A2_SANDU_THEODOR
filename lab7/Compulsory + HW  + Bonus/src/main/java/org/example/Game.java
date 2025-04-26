@@ -42,7 +42,7 @@ public class Game {
             thread.start();
         }
 
-        Timekeeper timekeeper = new Timekeeper(threads, 60000); // 20 seconds
+        Timekeeper timekeeper = new Timekeeper(threads, 60000);
         Thread timekeeperThread = new Thread(timekeeper);
         timekeeperThread.start();
 
