@@ -3,6 +3,7 @@ package org.example;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Getter
@@ -28,11 +29,18 @@ public class Game {
         }
     }
 
-
-
     public void addPlayer(Player player) {
         players.add(player);
         player.setGame(this);
+    }
+
+    public boolean arePlayersOutOfMoves() {
+        for (Player player : players) {
+            if (player.isRunning()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void play() {
@@ -43,9 +51,23 @@ public class Game {
             thread.start();
         }
 
-        Timekeeper timekeeper = new Timekeeper(threads, 60000); // 20 seconds
+        Timekeeper timekeeper = new Timekeeper(threads, 6000);
         Thread timekeeperThread = new Thread(timekeeper);
         timekeeperThread.start();
+
+        while (true) {
+            if (arePlayersOutOfMoves()) {
+                System.out.println("No more moves available. Ending game.");
+                timekeeperThread.interrupt();
+                break;
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
 
         for (Thread thread : threads) {
             try {
@@ -61,7 +83,14 @@ public class Game {
             Thread.currentThread().interrupt();
         }
 
-        Player winner = players.stream().max((p1, p2) -> Integer.compare(p1.getScore(), p2.getScore())).orElse(null);
+        System.out.println("=======");
+        System.out.println("Scores: ");
+        for (Player player : players) {
+            System.out.println(player.getName() + " : " + player.getScore());
+        }
+        System.out.println("=======");
+
+        Player winner = players.stream().max(Comparator.comparingInt(Player::getScore)).orElse(null);
         if (winner != null && winner.getScore() > 0) {
             System.out.println("The winner is " + winner.getName() + " with a score of " + winner.getScore());
         } else {
@@ -69,11 +98,14 @@ public class Game {
         }
     }
 
+
     public static void main(String[] args) {
         Game game = new Game();
         game.addPlayer(new Player("Player 1"));
         game.addPlayer(new Player("Player 2"));
         game.addPlayer(new Player("Player 3"));
         game.play();
+
+        TestDictionary.testSpeed(game.getDictionary());
     }
 }

@@ -17,52 +17,60 @@ public class Player implements Runnable {
     public Player(String name) {
         this.name = name;
         this.score = 0;
+        this.running = true;
     }
 
     private boolean submitWord() throws InterruptedException {
         List<Tile> extracted = game.getBag().extractTiles(7);
-        if (extracted.isEmpty()) {
+        if (extracted.size() < 7) {
+            running = false;
             return false;
         }
 
         List<String> possibleWords = new ArrayList<>();
         generateCombinations("", extracted, possibleWords);
 
+        possibleWords.sort((a, b) -> Integer.compare(calculateWordScore(b, extracted), calculateWordScore(a, extracted)));
+
         for (String word : possibleWords) {
-            Thread.sleep(1);
-            System.out.println("Player " + name + " is trying word: " + word);
             if (game.getDictionary().isWord(word)) {
+                int wordScore = calculateWordScore(word, extracted);
                 game.getBoard().addWord(this, word);
-                score += calculateWordScore(word, extracted);
+                score += wordScore;
                 removeUsedTiles(extracted, word);
-                return true; // Word successfully submitted
+                System.out.println("Player " + name + " found the word: " + word + " (" + wordScore + ")");
+                return true;
             }
         }
 
-        // If no valid word is found, discard all tiles and extract new ones
         game.getBag().extractTiles(extracted.size());
+        running = false;
         return false;
     }
 
     private void generateCombinations(String prefix, List<Tile> tiles, List<String> combinations) {
-        if (prefix.length() >= 2) {
+        if (!game.getDictionary().getPrefixTree().isPrefix(prefix)) {
+            return;
+        }
+        if (prefix.length() >= 2 && game.getDictionary().isWord(prefix)) {
             combinations.add(prefix);
         }
         for (int i = 0; i < tiles.size(); i++) {
             Tile tile = tiles.get(i);
             List<Tile> remaining = new ArrayList<>(tiles);
             remaining.remove(i);
-            generateCombinations(prefix + tile.getLetter(), remaining, combinations);
+            generateCombinations(prefix + tile.letter(), remaining, combinations);
         }
     }
 
     private int calculateWordScore(String word, List<Tile> tiles) {
+        List<Tile> copy = new ArrayList<>(tiles);
         int score = 0;
         for (char c : word.toCharArray()) {
-            for (Tile tile : tiles) {
-                if (tile.getLetter() == c) {
-                    score += tile.getPoints();
-                    tiles.remove(tile);
+            for (Tile tile : copy) {
+                if (tile.letter() == c) {
+                    score += tile.points();
+                    copy.remove(tile);
                     break;
                 }
             }
@@ -72,23 +80,22 @@ public class Player implements Runnable {
 
     private void removeUsedTiles(List<Tile> extracted, String word) {
         for (char c : word.toCharArray()) {
-            extracted.removeIf(tile -> tile.getLetter() == c);
+            extracted.removeIf(tile -> tile.letter() == c);
         }
     }
 
     @Override
     public void run() {
-        running = true;
         while (running) {
             game.waitForTurn(this);
             try {
                 if (!submitWord()) {
-                    if (game.getBag().extractTiles(7).isEmpty()) {
-                        running = false; // Stop if no tiles are left
+                    if (game.getBag().extractTiles(7).size() < 7) {
+                        running = false;
                     }
                 }
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                Thread.currentThread().interrupt();
             }
             game.nextTurn();
         }

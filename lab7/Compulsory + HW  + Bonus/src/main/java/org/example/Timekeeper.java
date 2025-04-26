@@ -20,9 +20,8 @@ public class Timekeeper  implements  Runnable{
         while (System.currentTimeMillis() < endTime) {
             try {
                 Thread.sleep(1000);
-             //   System.out.println("Time remaining: " + (endTime - System.currentTimeMillis()) / 1000 + " seconds");
+//                System.out.println("Time remaining: " + (endTime - System.currentTimeMillis()) / 1000 + " seconds");
             } catch (InterruptedException e) {
-                System.out.println("Timekeeper was interrupted.");
                 return;
             }
         }
