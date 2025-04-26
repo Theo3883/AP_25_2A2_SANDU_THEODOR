@@ -7,7 +7,8 @@ import java.util.*;
 
 public class Dictionary {
     @Getter
-    final PrefixTree prefixTree = new PrefixTree();
+    private final PrefixTree prefixTree = new PrefixTree();
+    private final List<String> words = new ArrayList<>();
 
     public Dictionary() {
         try {
@@ -16,6 +17,7 @@ public class Dictionary {
                 String trimmed = word.trim().toLowerCase();
                 if (!trimmed.isEmpty()) {
                     prefixTree.insert(trimmed);
+                    words.add(trimmed);
                 }
             }
         } catch (Exception e) {
@@ -29,5 +31,11 @@ public class Dictionary {
 
     public List<String> getWordsWithPrefix(String prefix) {
         return prefixTree.getWordsWithPrefix(prefix);
+    }
+
+    public List<String> lookupParallel(String prefix) {
+        return words.parallelStream()
+                .filter(word -> word.startsWith(prefix))
+                .toList();
     }
 }
