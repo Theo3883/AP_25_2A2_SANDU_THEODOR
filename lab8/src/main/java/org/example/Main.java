@@ -2,11 +2,7 @@ package org.example;
 
 import org.example.dao.CityDAO;
 import org.example.model.City;
-import org.example.utils.BiconnectedComponentsFinder;
-import org.example.utils.CityDataImporter;
-import org.example.utils.CityGenerator;
-import org.example.utils.DistanceCalculator;
-import org.example.utils.SisterCityGenerator;
+import org.example.utils.*;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -74,6 +70,9 @@ public class Main {
                 System.out.println("\n... and " + (count - 5) + " more components.");
             }
             System.out.println("========================================================");
+
+            System.out.println("\n================ CREATING MAP VISUALIZATION ===============");
+            SimpleCityMapVisualizer.createMap(con, biconnectedComponents, "city_network_map.png");
             
         } catch (SQLException | IOException e) {
             e.printStackTrace();
