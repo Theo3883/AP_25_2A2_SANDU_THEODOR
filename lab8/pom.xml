@@ -58,6 +58,11 @@
             <version>1.5.18</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.graph4j</groupId>
+            <artifactId>graph4j</artifactId>
+            <version>1.0.8</version>
+        </dependency>
     </dependencies>
 
 </project>

@@ -2,8 +2,11 @@ package org.example;
 
 import org.example.dao.CityDAO;
 import org.example.model.City;
+import org.example.utils.BiconnectedComponentsFinder;
 import org.example.utils.CityDataImporter;
+import org.example.utils.CityGenerator;
 import org.example.utils.DistanceCalculator;
+import org.example.utils.SisterCityGenerator;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -15,24 +18,63 @@ public class Main {
 
     public static void main(String[] args) {
         try (Connection con = Database.getConnection()) {
+            
+
             CityDataImporter.clearExistingData(con);
             CityDataImporter.importCities("countries.csv", con);
+
 
             CityDAO cityDAO = new CityDAO(con);
             List<City> cities = cityDAO.findAll();
 
             Random random = new Random();
-            System.out.println("=======================================================================");
-            System.out.print("\n\n\n\n\n\n");
+            System.out.println("================= DISTANCE CALCULATIONS =================");
             for (int i = 0; i < 5; i++) {
                 City city1 = cities.get(random.nextInt(cities.size()));
                 City city2 = cities.get(random.nextInt(cities.size()));
 
                 calculateAndPrintDistance(city1, city2);
             }
-            System.out.print("\n\n\n\n\n\n");
-            System.out.println("=======================================================================");
+            System.out.println("========================================================");
+            
 
+            System.out.println("\n================ GENERATING FAKE CITIES ================");
+            CityGenerator cityGenerator = new CityGenerator(con);
+            List<City> fakeCities = cityGenerator.generateCities(5000);
+            System.out.println("Generated " + fakeCities.size() + " fake cities.");
+            
+
+            List<City> allCities = cityDAO.findAll();
+
+            System.out.println("\n=========== GENERATING SISTER CITY RELATIONS ===========");
+            SisterCityGenerator sisterCityGenerator = new SisterCityGenerator(con);
+            sisterCityGenerator.generateSisterCityRelationships(allCities, 0.0002);
+            
+
+            System.out.println("\n========== FINDING BICONNECTED COMPONENTS =============");
+            BiconnectedComponentsFinder biconnFinder = new BiconnectedComponentsFinder(con);
+            List<List<City>> biconnectedComponents = biconnFinder.findBiconnectedComponents();
+            
+
+            System.out.println("\n=============== BICONNECTED COMPONENTS ================");
+            System.out.println("Found " + biconnectedComponents.size() + " biconnected components with 3+ cities");
+            
+            int count = 0;
+            for (List<City> component : biconnectedComponents) {
+                if (count < 5) {
+                    System.out.println("\nComponent " + (count+1) + " (" + component.size() + " cities):");
+                    for (City city : component) {
+                        System.out.println("  - " + city.getName() + " (ID: " + city.getId() + ")");
+                    }
+                }
+                count++;
+            }
+            
+            if (count > 5) {
+                System.out.println("\n... and " + (count - 5) + " more components.");
+            }
+            System.out.println("========================================================");
+            
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         } finally {

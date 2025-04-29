@@ -70,6 +70,7 @@ public class CityDataImporter {
     }
 
     public static void clearExistingData(Connection con) throws SQLException {
+        clearTable(con, "sister_cities");
         clearTable(con, "cities");
         clearTable(con, "countries");
         clearTable(con, "continents");
