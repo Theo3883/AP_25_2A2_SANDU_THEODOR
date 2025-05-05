@@ -77,6 +77,10 @@
             <version>6.2.7.Final</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.optaplanner</groupId>
+            <artifactId>optaplanner-core</artifactId>
+            <version>10.0.0</version>
+        </dependency>
     </dependencies>
-
 </project>

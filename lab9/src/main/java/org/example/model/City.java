@@ -30,6 +30,9 @@ public class City {
     private Double latitude;
     private Double longitude;
 
+    @Column(name = "population")
+    private Integer population;
+
     @OneToMany(mappedBy = "city1")
     private List<SisterCity> sisterCitiesAsCity1;
 
