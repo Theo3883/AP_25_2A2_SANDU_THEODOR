@@ -95,13 +95,15 @@ public class JDBCCityDAO extends JDBCAbstractDAO<City, Integer> implements CityD
     @Override
     public List<City> findByName(String namePattern) {
         String query = "SELECT * FROM cities WHERE name LIKE ?";
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            stmt.setString(1, namePattern);
-            ResultSet rs = stmt.executeQuery();
-            return mapResultSetToList(rs);
+                stmt.setString(1, namePattern);
+                ResultSet rs = stmt.executeQuery();
+                return mapResultSetToList(rs);
 
+            }
         } catch (SQLException e) {
             logger.error("Error finding cities by name pattern: {}", namePattern, e);
             throw new RuntimeException("Error finding cities by name pattern", e);
@@ -111,13 +113,15 @@ public class JDBCCityDAO extends JDBCAbstractDAO<City, Integer> implements CityD
     @Override
     public List<City> findByCountry(Integer countryId) {
         String query = "SELECT * FROM cities WHERE country_id = ?";
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            stmt.setInt(1, countryId);
-            ResultSet rs = stmt.executeQuery();
-            return mapResultSetToList(rs);
+                stmt.setInt(1, countryId);
+                ResultSet rs = stmt.executeQuery();
+                return mapResultSetToList(rs);
 
+            }
         } catch (SQLException e) {
             logger.error("Error finding cities by country ID: {}", countryId, e);
             throw new RuntimeException("Error finding cities by country ID", e);
@@ -127,12 +131,14 @@ public class JDBCCityDAO extends JDBCAbstractDAO<City, Integer> implements CityD
     @Override
     public List<City> findCapitals() {
         String query = "SELECT * FROM cities WHERE is_capital = true";
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement stmt = conn.prepareStatement(query);
+                 ResultSet rs = stmt.executeQuery()) {
 
-            return mapResultSetToList(rs);
+                return mapResultSetToList(rs);
 
+            }
         } catch (SQLException e) {
             logger.error("Error finding capital cities", e);
             throw new RuntimeException("Error finding capital cities", e);
@@ -142,16 +148,18 @@ public class JDBCCityDAO extends JDBCAbstractDAO<City, Integer> implements CityD
     @Override
     public List<City> findByCoordinatesRange(Double minLat, Double maxLat, Double minLong, Double maxLong) {
         String query = "SELECT * FROM cities WHERE latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?";
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            stmt.setDouble(1, minLat);
-            stmt.setDouble(2, maxLat);
-            stmt.setDouble(3, minLong);
-            stmt.setDouble(4, maxLong);
-            ResultSet rs = stmt.executeQuery();
-            return mapResultSetToList(rs);
+                stmt.setDouble(1, minLat);
+                stmt.setDouble(2, maxLat);
+                stmt.setDouble(3, minLong);
+                stmt.setDouble(4, maxLong);
+                ResultSet rs = stmt.executeQuery();
+                return mapResultSetToList(rs);
 
+            }
         } catch (SQLException e) {
             logger.error("Error finding cities by coordinates range", e);
             throw new RuntimeException("Error finding cities by coordinates range", e);
@@ -161,13 +169,15 @@ public class JDBCCityDAO extends JDBCAbstractDAO<City, Integer> implements CityD
     @Override
     public List<City> findByFirstLetter(char letter) {
         String query = "SELECT * FROM cities WHERE name LIKE ?";
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            stmt.setString(1, letter + "%");
-            ResultSet rs = stmt.executeQuery();
-            return mapResultSetToList(rs);
+                stmt.setString(1, letter + "%");
+                ResultSet rs = stmt.executeQuery();
+                return mapResultSetToList(rs);
 
+            }
         } catch (SQLException e) {
             logger.error("Error finding cities by first letter: {}", letter, e);
             throw new RuntimeException("Error finding cities by first letter", e);
@@ -177,14 +187,16 @@ public class JDBCCityDAO extends JDBCAbstractDAO<City, Integer> implements CityD
     @Override
     public List<City> findByPopulationRange(Integer min, Integer max) {
         String query = "SELECT * FROM cities WHERE population BETWEEN ? AND ?";
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            stmt.setInt(1, min);
-            stmt.setInt(2, max);
-            ResultSet rs = stmt.executeQuery();
-            return mapResultSetToList(rs);
+                stmt.setInt(1, min);
+                stmt.setInt(2, max);
+                ResultSet rs = stmt.executeQuery();
+                return mapResultSetToList(rs);
 
+            }
         } catch (SQLException e) {
             logger.error("Error finding cities by population range", e);
             throw new RuntimeException("Error finding cities by population range", e);

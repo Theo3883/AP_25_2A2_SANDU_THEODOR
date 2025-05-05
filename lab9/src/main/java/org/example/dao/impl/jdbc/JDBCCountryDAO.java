@@ -85,13 +85,15 @@ public class JDBCCountryDAO extends JDBCAbstractDAO<Country, Integer> implements
     @Override
     public List<Country> findByName(String namePattern) {
         String query = "SELECT * FROM countries WHERE name LIKE ?";
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            stmt.setString(1, namePattern);
-            ResultSet rs = stmt.executeQuery();
-            return mapResultSetToList(rs);
+                stmt.setString(1, namePattern);
+                ResultSet rs = stmt.executeQuery();
+                return mapResultSetToList(rs);
 
+            }
         } catch (SQLException e) {
             logger.error("Error finding countries by name pattern: {}", namePattern, e);
             throw new RuntimeException("Error finding countries by name pattern", e);
@@ -101,13 +103,15 @@ public class JDBCCountryDAO extends JDBCAbstractDAO<Country, Integer> implements
     @Override
     public List<Country> findByContinent(Integer continentId) {
         String query = "SELECT * FROM countries WHERE continent_id = ?";
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            stmt.setInt(1, continentId);
-            ResultSet rs = stmt.executeQuery();
-            return mapResultSetToList(rs);
+                stmt.setInt(1, continentId);
+                ResultSet rs = stmt.executeQuery();
+                return mapResultSetToList(rs);
 
+            }
         } catch (SQLException e) {
             logger.error("Error finding countries by continent ID: {}", continentId, e);
             throw new RuntimeException("Error finding countries by continent ID", e);
@@ -117,18 +121,20 @@ public class JDBCCountryDAO extends JDBCAbstractDAO<Country, Integer> implements
     @Override
     public Country findByCode(String code) {
         String query = "SELECT * FROM countries WHERE code = ?";
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            stmt.setString(1, code);
-            ResultSet rs = stmt.executeQuery();
+                stmt.setString(1, code);
+                ResultSet rs = stmt.executeQuery();
 
-            if (rs.next()) {
-                return mapRow(rs);
-            } else {
-                return null;
+                if (rs.next()) {
+                    return mapRow(rs);
+                } else {
+                    return null;
+                }
+
             }
-
         } catch (SQLException e) {
             logger.error("Error finding country by code: {}", code, e);
             throw new RuntimeException("Error finding country by code", e);

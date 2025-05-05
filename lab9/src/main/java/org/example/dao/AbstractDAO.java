@@ -7,7 +7,7 @@ public interface AbstractDAO<T, ID> {
     void create(T entity);
     Optional<T> findById(ID id);
     List<T> findAll();
-    T update(T entity);
+    void update(T entity);
     void delete(T entity);
     void deleteById(ID id);
 }

@@ -1,5 +1,6 @@
 package org.example.solver.score;
 
+import lombok.Getter;
 import org.example.solver.domain.CitySelectionSolution;
 import org.example.solver.domain.PlanningCity;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
@@ -15,11 +16,9 @@ public class CityConstraintProvider implements ConstraintProvider {
     @Override
     public Constraint[] defineConstraints(ConstraintFactory constraintFactory) {
         return new Constraint[] {
-            // Hard constraints
             uniqueCountryConstraint(constraintFactory),
             populationRangeConstraint(constraintFactory),
-            
-            // Soft constraints
+
             maximizeCitiesConstraint(constraintFactory)
         };
     }
@@ -68,20 +67,14 @@ public class CityConstraintProvider implements ConstraintProvider {
     }
 
     public static class PopulationRangeHolder {
+        @Getter
         private static int minPopulation;
+        @Getter
         private static int maxPopulation;
 
         public static void setPopulationRange(int min, int max) {
             minPopulation = min;
             maxPopulation = max;
-        }
-
-        public static int getMinPopulation() {
-            return minPopulation;
-        }
-
-        public static int getMaxPopulation() {
-            return maxPopulation;
         }
     }
 }

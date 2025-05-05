@@ -65,19 +65,21 @@ public abstract class JDBCAbstractDAO<T, ID> implements AbstractDAO<T, ID> {
         logger.debug("Finding {} with ID: {}", entityClass.getSimpleName(), id);
         long startTime = System.currentTimeMillis();
 
-        try (Connection conn = Database.getConnection();
-             PreparedStatement statement = conn.prepareStatement(getFindByIdQuery())) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement statement = conn.prepareStatement(getFindByIdQuery())) {
 
-            setFindByIdParameters(statement, id);
+                setFindByIdParameters(statement, id);
 
-            try (ResultSet rs = statement.executeQuery()) {
-                long endTime = System.currentTimeMillis();
-                logger.info("FindById query executed in {}ms", endTime - startTime);
+                try (ResultSet rs = statement.executeQuery()) {
+                    long endTime = System.currentTimeMillis();
+                    logger.info("FindById query executed in {}ms", endTime - startTime);
 
-                if (rs.next()) {
-                    return Optional.of(mapRow(rs));
-                } else {
-                    return Optional.empty();
+                    if (rs.next()) {
+                        return Optional.of(mapRow(rs));
+                    } else {
+                        return Optional.empty();
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -91,17 +93,19 @@ public abstract class JDBCAbstractDAO<T, ID> implements AbstractDAO<T, ID> {
         logger.debug("Finding all entities of type: {}", entityClass.getSimpleName());
         long startTime = System.currentTimeMillis();
 
-        try (Connection conn = Database.getConnection();
-             PreparedStatement statement = conn.prepareStatement(getFindAllQuery());
-             ResultSet rs = statement.executeQuery()) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement statement = conn.prepareStatement(getFindAllQuery());
+                 ResultSet rs = statement.executeQuery()) {
 
-            List<T> results = mapResultSetToList(rs);
+                List<T> results = mapResultSetToList(rs);
 
-            long endTime = System.currentTimeMillis();
-            logger.info("FindAll query executed in {}ms, found {} entities",
-                    endTime - startTime, results.size());
+                long endTime = System.currentTimeMillis();
+                logger.info("FindAll query executed in {}ms, found {} entities",
+                        endTime - startTime, results.size());
 
-            return results;
+                return results;
+            }
         } catch (SQLException e) {
             logger.error("Error finding all entities: {}", e.getMessage(), e);
             throw new RuntimeException("Error finding all entities", e);
@@ -109,20 +113,21 @@ public abstract class JDBCAbstractDAO<T, ID> implements AbstractDAO<T, ID> {
     }
 
     @Override
-    public T update(T entity) {
+    public void update(T entity) {
         logger.debug("Updating entity of type: {}", entityClass.getSimpleName());
         long startTime = System.currentTimeMillis();
 
-        try (Connection conn = Database.getConnection();
-             PreparedStatement statement = conn.prepareStatement(getUpdateQuery())) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement statement = conn.prepareStatement(getUpdateQuery())) {
 
-            setUpdateParameters(statement, entity);
-            statement.executeUpdate();
+                setUpdateParameters(statement, entity);
+                statement.executeUpdate();
 
-            long endTime = System.currentTimeMillis();
-            logger.info("Entity updated in {}ms", endTime - startTime);
+                long endTime = System.currentTimeMillis();
+                logger.info("Entity updated in {}ms", endTime - startTime);
 
-            return entity;
+            }
         } catch (SQLException e) {
             logger.error("Error updating entity: {}", e.getMessage(), e);
             throw new RuntimeException("Error updating entity", e);
@@ -139,15 +144,17 @@ public abstract class JDBCAbstractDAO<T, ID> implements AbstractDAO<T, ID> {
         logger.debug("Deleting {} with ID: {}", entityClass.getSimpleName(), id);
         long startTime = System.currentTimeMillis();
 
-        try (Connection conn = Database.getConnection();
-             PreparedStatement statement = conn.prepareStatement(getDeleteQuery())) {
+        try (Connection conn = Database.getConnection()) {
+            assert conn != null;
+            try (PreparedStatement statement = conn.prepareStatement(getDeleteQuery())) {
 
-            setDeleteParameters(statement, id);
-            int affectedRows = statement.executeUpdate();
+                setDeleteParameters(statement, id);
+                int affectedRows = statement.executeUpdate();
 
-            long endTime = System.currentTimeMillis();
-            logger.info("Entity deletion completed in {}ms, affected rows: {}",
-                    endTime - startTime, affectedRows);
+                long endTime = System.currentTimeMillis();
+                logger.info("Entity deletion completed in {}ms, affected rows: {}",
+                        endTime - startTime, affectedRows);
+            }
         } catch (SQLException e) {
             logger.error("Error deleting entity: {}", e.getMessage(), e);
             throw new RuntimeException("Error deleting entity", e);

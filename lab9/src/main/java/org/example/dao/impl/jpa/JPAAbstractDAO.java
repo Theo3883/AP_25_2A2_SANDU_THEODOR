@@ -6,7 +6,6 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import org.example.dao.AbstractDAO;
-import org.example.model.Country;
 import org.example.utils.JPAUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,7 +97,7 @@ public abstract class JPAAbstractDAO<T, ID> implements AbstractDAO<T, ID> {
     }
 
     @Override
-    public T update(T entity) {
+    public void update(T entity) {
         logger.debug("Updating entity of type: {}", entityClass.getSimpleName());
         long startTime = System.currentTimeMillis();
 
@@ -117,7 +116,6 @@ public abstract class JPAAbstractDAO<T, ID> implements AbstractDAO<T, ID> {
             long endTime = System.currentTimeMillis();
             logger.info("Entity updated in {}ms", endTime - startTime);
 
-            return updatedEntity;
         } catch (Exception e) {
             if (!isActiveTransaction) {
                 entityManager.getTransaction().rollback();
