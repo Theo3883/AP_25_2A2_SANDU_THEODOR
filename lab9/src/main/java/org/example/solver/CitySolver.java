@@ -1,13 +1,13 @@
-package org.example.utils;
+package org.example.solver;
 
-import org.chocosolver.solver.Model;
-import org.chocosolver.solver.Solution;
-import org.chocosolver.solver.Solver;
-import org.chocosolver.solver.variables.BoolVar;
-import org.chocosolver.solver.variables.IntVar;
 import org.example.dao.CityDAO;
 import org.example.factory.DAOFactory;
 import org.example.model.City;
+import org.example.solver.domain.CitySelectionSolution;
+import org.example.solver.domain.PlanningCity;
+import org.example.solver.score.CityConstraintProvider;
+import org.optaplanner.core.api.solver.Solver;
+import org.optaplanner.core.api.solver.SolverFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,59 +29,45 @@ public class CitySolver {
             return Collections.emptyList();
         }
 
-        Map<Integer, List<City>> citiesByCountry = citiesByLetter.stream()
-                .collect(Collectors.groupingBy(city -> city.getCountry().getId()));
+        // Convert City objects to PlanningCity objects for OptaPlanner
+        List<PlanningCity> planningCities = citiesByLetter.stream()
+                .map(city -> new PlanningCity(
+                        city.getId(),
+                        city.getName(),
+                        city.getPopulation() != null ? city.getPopulation() : 0,
+                        city.getCountry().getId(),
+                        city.getCountry().getName()))
+                .collect(Collectors.toList());
 
-        Model model = new Model("City Selection Problem");
+        CityConstraintProvider.PopulationRangeHolder.setPopulationRange(minPopulation, maxPopulation);
 
-        List<City> allCities = new ArrayList<>(citiesByLetter);
-        BoolVar[] selected = model.boolVarArray("selected", allCities.size());
+        CitySelectionSolution problem = new CitySelectionSolution();
+        problem.setCities(planningCities);
+        problem.setMinPopulation(minPopulation);
+        problem.setMaxPopulation(maxPopulation);
 
-        int[] populations = allCities.stream()
-                .mapToInt(c -> c.getPopulation() != null ? c.getPopulation() : 0)
-                .toArray();
+        SolverFactory<CitySelectionSolution> solverFactory = SolverFactory.createFromXmlResource(
+                "org/example/solver/citySolverConfig.xml");
+        Solver<CitySelectionSolution> solver = solverFactory.buildSolver();
 
-        IntVar totalPopulation = model.intVar("totalPopulation", minPopulation, maxPopulation);
+        CitySelectionSolution solution = solver.solve(problem);
 
-        model.scalar(selected, populations, "=", totalPopulation).post();
+        List<City> selectedCities = solution.getCities().stream()
+                .filter(pc -> Boolean.TRUE.equals(pc.getSelected()))
+                .map(planningCity -> citiesByLetter.stream()
+                        .filter(city -> city.getId().equals(planningCity.getId()))
+                        .findFirst()
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
-        for (List<City> countryCities : citiesByCountry.values()) {
-            if (countryCities.size() > 1) {
-                List<Integer> indices = new ArrayList<>();
-                for (City city : countryCities) {
-                    indices.add(allCities.indexOf(city));
-                }
+        int totalPopulation = selectedCities.stream()
+                .mapToInt(city -> city.getPopulation() != null ? city.getPopulation() : 0)
+                .sum();
 
-                BoolVar[] countryVars = new BoolVar[indices.size()];
-                for (int i = 0; i < indices.size(); i++) {
-                    countryVars[i] = selected[indices.get(i)];
-                }
-                model.sum(countryVars, "<=", 1).post();
-            }
-        }
+        logger.info("Found solution with {} cities, total population: {}",
+                selectedCities.size(), totalPopulation);
 
-        Solver solver = model.getSolver();
-        Solution solution = solver.findSolution();
-
-        if (solution != null) {
-            List<City> selectedCities = new ArrayList<>();
-            for (int i = 0; i < selected.length; i++) {
-                if (solution.getIntVal(selected[i]) == 1) {
-                    selectedCities.add(allCities.get(i));
-                }
-            }
-
-            int totalPop = selectedCities.stream()
-                    .mapToInt(c -> c.getPopulation() != null ? c.getPopulation() : 0)
-                    .sum();
-
-            logger.info("Found solution with {} cities, total population: {}",
-                    selectedCities.size(), totalPop);
-
-            return selectedCities;
-        } else {
-            logger.info("No solution found for the given constraints");
-            return Collections.emptyList();
-        }
+        return selectedCities;
     }
 }
