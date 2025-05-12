@@ -1,6 +1,7 @@
-package org.example;
+package org.example.game;
 
 import lombok.Data;
+import org.example.player.PlayerState;
 
 @Data
 public class Cell {

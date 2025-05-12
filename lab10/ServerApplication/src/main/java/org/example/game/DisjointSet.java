@@ -1,4 +1,4 @@
-package org.example;
+package org.example.game;
 
 public class DisjointSet {
     private final int[] parent;
@@ -16,7 +16,7 @@ public class DisjointSet {
 
     public int find(int x) {
         if (parent[x] != x) {
-            parent[x] = find(parent[x]);  // Path compression
+            parent[x] = find(parent[x]);
         }
         return parent[x];
     }
@@ -29,7 +29,6 @@ public class DisjointSet {
             return;
         }
 
-        // Union by rank
         if (rank[rootX] < rank[rootY]) {
             parent[rootX] = rootY;
         } else if (rank[rootX] > rank[rootY]) {

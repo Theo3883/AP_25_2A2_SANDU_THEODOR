@@ -1,7 +1,8 @@
-package org.example;
+package org.example.game;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.example.player.PlayerState;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -10,16 +11,25 @@ import java.util.Random;
 @Data
 @Slf4j
 public class HexGame {
+    // Constants
+    private static final int GAME_ID_LENGTH = 6;
+
+    // Game configuration
     private final String gameId;
     private final int boardSize;
-    private final long timeControlMillis; // time in milliseconds for each player
+    private final long timeControlMillis;
 
+    // Player information
     private String player1Id;
     private String player2Id;
-    private Instant player1TimeStart;
-    private Instant player2TimeStart;
     private long player1TimeRemaining;
     private long player2TimeRemaining;
+
+    // Time tracking
+    private Instant player1TimeStart;
+    private Instant player2TimeStart;
+
+    // Game state
     private boolean gameStarted;
     private boolean gameEnded;
     private String winner;
@@ -33,18 +43,22 @@ public class HexGame {
         this.player1TimeRemaining = timeControlMillis;
         this.player2TimeRemaining = timeControlMillis;
         this.currentPlayer = PlayerState.PLAYER1;
-        this.board = new Cell[boardSize][boardSize];
 
-        for (int i = 0; i < boardSize; i++) {
-            for (int j = 0; j < boardSize; j++) {
-                board[i][j] = new Cell(i, j);
+        initializeBoard();
+    }
+
+    private void initializeBoard() {
+        this.board = new Cell[boardSize][boardSize];
+        for (int row = 0; row < boardSize; row++) {
+            for (int col = 0; col < boardSize; col++) {
+                board[row][col] = new Cell(row, col);
             }
         }
     }
 
     private String generateGameId() {
         Random random = new Random();
-        int number = 100000 + random.nextInt(900000); // 6-digit number
+        int number = 100000 + random.nextInt(900000);
         return String.valueOf(number);
     }
 
@@ -62,24 +76,15 @@ public class HexGame {
     }
 
     public boolean makeMove(String playerId, int row, int col) {
-        if (!gameStarted || gameEnded) {
-            return false;
-        }
-        if ((currentPlayer == PlayerState.PLAYER1 && !playerId.equals(player1Id)) ||
-                (currentPlayer == PlayerState.PLAYER2 && !playerId.equals(player2Id))) {
+        if (!isValidGameState(playerId)) {
             return false;
         }
 
         updateTimeRemaining();
-
-        if ((currentPlayer == PlayerState.PLAYER1 && player1TimeRemaining <= 0) ||
-                (currentPlayer == PlayerState.PLAYER2 && player2TimeRemaining <= 0)) {
-            gameEnded = true;
-            winner = currentPlayer == PlayerState.PLAYER1 ? player2Id : player1Id;
+        if (hasPlayerTimedOut()) {
             return false;
         }
-        if (row < 0 || row >= boardSize || col < 0 || col >= boardSize ||
-                board[row][col].getOwner() != PlayerState.EMPTY) {
+        if (!isValidMove(row, col)) {
             return false;
         }
         board[row][col].setOwner(currentPlayer);
@@ -88,7 +93,36 @@ public class HexGame {
             gameEnded = true;
             winner = currentPlayer == PlayerState.PLAYER1 ? player1Id : player2Id;
         }
+        switchCurrentPlayer();
+        return true;
+    }
 
+    private boolean isValidGameState(String playerId) {
+        if (!gameStarted || gameEnded) {
+            return false;
+        }
+        return (currentPlayer == PlayerState.PLAYER1 && playerId.equals(player1Id)) ||
+                (currentPlayer == PlayerState.PLAYER2 && playerId.equals(player2Id));
+    }
+
+    private boolean hasPlayerTimedOut() {
+        if ((currentPlayer == PlayerState.PLAYER1 && player1TimeRemaining <= 0) ||
+                (currentPlayer == PlayerState.PLAYER2 && player2TimeRemaining <= 0)) {
+            gameEnded = true;
+            winner = currentPlayer == PlayerState.PLAYER1 ? player2Id : player1Id;
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isValidMove(int row, int col) {
+        return row >= 0 && row < boardSize &&
+                col >= 0 && col < boardSize &&
+                board[row][col].getOwner() == PlayerState.EMPTY;
+    }
+
+
+    private void switchCurrentPlayer() {
         if (currentPlayer == PlayerState.PLAYER1) {
             player1TimeStart = null;
             player2TimeStart = Instant.now();
@@ -98,11 +132,14 @@ public class HexGame {
             player1TimeStart = Instant.now();
             currentPlayer = PlayerState.PLAYER1;
         }
-
-        return true;
     }
 
     public void updateTimeRemaining() {
+        updatePlayer1Time();
+        updatePlayer2Time();
+    }
+
+    private void updatePlayer1Time() {
         if (player1TimeStart != null) {
             long elapsed = Duration.between(player1TimeStart, Instant.now()).toMillis();
             player1TimeRemaining -= elapsed;
@@ -110,14 +147,12 @@ public class HexGame {
 
             if (player1TimeRemaining <= 0) {
                 player1TimeRemaining = 0;
-                if (!gameEnded) {
-                    gameEnded = true;
-                    winner = player2Id;
-                    log.info("Player 1's time has run out. Player 2 wins.");
-                }
+                handleTimeout(PlayerState.PLAYER1);
             }
         }
+    }
 
+    private void updatePlayer2Time() {
         if (player2TimeStart != null) {
             long elapsed = Duration.between(player2TimeStart, Instant.now()).toMillis();
             player2TimeRemaining -= elapsed;
@@ -125,11 +160,21 @@ public class HexGame {
 
             if (player2TimeRemaining <= 0) {
                 player2TimeRemaining = 0;
-                if (!gameEnded) {
-                    gameEnded = true;
-                    winner = player1Id;
-                    log.info("Player 2's time has run out. Player 1 wins.");
-                }
+                handleTimeout(PlayerState.PLAYER2);
+            }
+        }
+    }
+
+    private void handleTimeout(PlayerState player) {
+        if (!gameEnded) {
+            gameEnded = true;
+
+            if (player == PlayerState.PLAYER1) {
+                winner = player2Id;
+                log.info("Player 1's time has run out. Player 2 wins.");
+            } else {
+                winner = player1Id;
+                log.info("Player 2's time has run out. Player 1 wins.");
             }
         }
     }
@@ -139,7 +184,15 @@ public class HexGame {
         int source = boardSize * boardSize;
         int target = boardSize * boardSize + 1;
 
+        connectPlayerBorders(player, ds, source, target);
+        connectPlayerCells(player, ds);
+
+        return ds.find(source) == ds.find(target);
+    }
+
+    private void connectPlayerBorders(PlayerState player, DisjointSet ds, int source, int target) {
         if (player == PlayerState.PLAYER1) {
+            // Player 1 connects left to right
             for (int i = 0; i < boardSize; i++) {
                 if (board[i][0].getOwner() == player) {
                     ds.union(i * boardSize, source);
@@ -148,45 +201,48 @@ public class HexGame {
                     ds.union(i * boardSize + boardSize - 1, target);
                 }
             }
-        } else {
-            for (int j = 0; j < boardSize; j++) {
-                if (board[0][j].getOwner() == player) {
-                    ds.union(j, source);
-                }
-                if (board[boardSize - 1][j].getOwner() == player) {
-                    ds.union((boardSize - 1) * boardSize + j, target);
-                }
+            return;
+        }
+
+        // Player 2 connects top to bottom
+        for (int j = 0; j < boardSize; j++) {
+            if (board[0][j].getOwner() == player) {
+                ds.union(j, source);
+            }
+            if (board[boardSize - 1][j].getOwner() == player) {
+                ds.union((boardSize - 1) * boardSize + j, target);
             }
         }
 
+    }
+
+    private void connectPlayerCells(PlayerState player, DisjointSet ds) {
+        // Hex board has 6 possible directions for connections
         int[][] directions = {{-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}};
+
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
-                if (board[i][j].getOwner() == player) {
-                    int cellIndex = i * boardSize + j;
+                if (board[i][j].getOwner() != player) continue;
 
-                    for (int[] dir : directions) {
-                        int ni = i + dir[0];
-                        int nj = j + dir[1];
+                int cellIndex = i * boardSize + j;
+                for (int[] dir : directions) {
+                    int ni = i + dir[0];
+                    int nj = j + dir[1];
 
-                        if (ni >= 0 && ni < boardSize && nj >= 0 && nj < boardSize &&
-                                board[ni][nj].getOwner() == player) {
-                            int neighborIndex = ni * boardSize + nj;
-                            ds.union(cellIndex, neighborIndex);
-                        }
+                    if (ni >= 0 && ni < boardSize && nj >= 0 && nj < boardSize &&
+                            board[ni][nj].getOwner() == player) {
+                        int neighborIndex = ni * boardSize + nj;
+                        ds.union(cellIndex, neighborIndex);
                     }
                 }
+
             }
         }
-        return ds.find(source) == ds.find(target);
     }
 
     public String getGameState() {
         updateTimeRemaining();
-        StringBuilder state = new StringBuilder();
-        state.append(getGameInfo());
-        state.append(getBoardState());
-        return state.toString();
+        return getGameInfo() + getBoardState();
     }
 
     public String getGameInfo() {
@@ -210,20 +266,14 @@ public class HexGame {
 
     public String getBoardState() {
         updateTimeRemaining();
-
         StringBuilder state = new StringBuilder();
-        state.append("  ");
-        for (int j = 0; j < boardSize; j++) {
-            state.append(String.format("%2c", 'A' + j));
-        }
-        state.append("\n");
+        printColumnHeaders(state);
+        printPlayerBorderTop(state);
 
         for (int i = 0; i < boardSize; i++) {
-            for (int s = 0; s < i; s++) {
-                state.append(" ");
-            }
+            state.append(" ".repeat(i));
             state.append(String.format("%2d ", i));
-
+            state.append("X ");
             for (int j = 0; j < boardSize; j++) {
                 if (board[i][j].getOwner() == PlayerState.EMPTY) {
                     state.append(". ");
@@ -233,16 +283,57 @@ public class HexGame {
                     state.append("O ");
                 }
             }
+
+            state.append("X ");
+            state.append(String.format("%d", i));
             state.append("\n");
         }
 
+        printPlayerBorderBottom(state);
         return state.toString();
+    }
+
+    private void printColumnHeaders(StringBuilder state) {
+        state.append("    ");
+        for (int j = 0; j < boardSize; j++) {
+            state.append(String.format("%2c", 'A' + j));
+        }
+        state.append("\n");
+    }
+
+    private void printPlayerBorderTop(StringBuilder state) {
+        state.append("    ");
+        state.append(" O".repeat(Math.max(0, boardSize)));
+        state.append("\n");
+    }
+
+    private void printPlayerBorderBottom(StringBuilder state) {
+        state.append(" ".repeat(Math.max(0, boardSize)));
+        state.append("   ");
+        state.append(" O".repeat(Math.max(0, boardSize)));
+        state.append("\n");
+
+        state.append(" ".repeat(Math.max(0, boardSize)));
+        state.append("   ");
+        for (int j = 0; j < boardSize; j++) {
+            state.append(String.format("%2c", 'A' + j));
+        }
+        state.append("\n");
     }
 
     public String getPlayerBoardState(String playerId) {
         updateTimeRemaining();
-
         StringBuilder state = new StringBuilder();
+
+        appendGameStatus(state, playerId);
+        appendPlayerInfo(state, playerId);
+        appendTurnInfo(state, playerId);
+        state.append(getBoardState());
+
+        return state.toString();
+    }
+
+    private void appendGameStatus(StringBuilder state, String playerId) {
         if (gameEnded) {
             state.append("GAME OVER! ");
             if (winner != null) {
@@ -255,27 +346,30 @@ public class HexGame {
                 state.append("The game has ended in a draw.\n");
             }
         }
+    }
 
+
+    private void appendPlayerInfo(StringBuilder state, String playerId) {
         if (playerId.equals(player1Id)) {
-            state.append("You are Player 1 (X)\n");
+            state.append("You are Player 1 (X) - Connect LEFT to RIGHT\n");
             state.append("Your remaining time: ").append(Math.max(0, player1TimeRemaining / 1000)).append("s\n");
             state.append("Opponent's remaining time: ").append(Math.max(0, player2TimeRemaining / 1000)).append("s\n");
         } else if (playerId.equals(player2Id)) {
-            state.append("You are Player 2 (O)\n");
+            state.append("You are Player 2 (O) - Connect TOP to BOTTOM\n");
             state.append("Your remaining time: ").append(Math.max(0, player2TimeRemaining / 1000)).append("s\n");
             state.append("Opponent's remaining time: ").append(Math.max(0, player1TimeRemaining / 1000)).append("s\n");
         }
+    }
 
+
+    private void appendTurnInfo(StringBuilder state, String playerId) {
         if (!gameEnded) {
             if ((currentPlayer == PlayerState.PLAYER1 && playerId.equals(player1Id)) ||
-                (currentPlayer == PlayerState.PLAYER2 && playerId.equals(player2Id))) {
-                state.append("It's your turn!\n");
+                    (currentPlayer == PlayerState.PLAYER2 && playerId.equals(player2Id))) {
+                state.append("IT'S YOUR TURN!\n");
             } else {
                 state.append("Waiting for opponent's move...\n");
             }
         }
-
-        state.append(getBoardState());
-        return state.toString();
     }
 }
