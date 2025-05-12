@@ -46,8 +46,7 @@ public class CitySolver {
         problem.setMinPopulation(minPopulation);
         problem.setMaxPopulation(maxPopulation);
 
-        SolverFactory<CitySelectionSolution> solverFactory = SolverFactory.createFromXmlResource(
-                "citySolverConfig.xml");
+        SolverFactory<CitySelectionSolution> solverFactory = SolverFactory.createFromXmlResource("citySolverConfig.xml");
         Solver<CitySelectionSolution> solver = solverFactory.buildSolver();
 
         CitySelectionSolution solution = solver.solve(problem);

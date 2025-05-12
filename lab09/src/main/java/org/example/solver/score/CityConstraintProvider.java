@@ -1,15 +1,12 @@
 package org.example.solver.score;
 
 import lombok.Getter;
-import org.example.solver.domain.CitySelectionSolution;
 import org.example.solver.domain.PlanningCity;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.api.score.stream.Constraint;
 import org.optaplanner.core.api.score.stream.ConstraintFactory;
 import org.optaplanner.core.api.score.stream.ConstraintProvider;
 import org.optaplanner.core.api.score.stream.Joiners;
-
-import static org.optaplanner.core.api.score.stream.ConstraintCollectors.sum;
 
 public class CityConstraintProvider implements ConstraintProvider {
 
