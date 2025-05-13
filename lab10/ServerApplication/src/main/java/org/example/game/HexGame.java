@@ -1,6 +1,7 @@
 package org.example.game;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.example.player.PlayerState;
 
@@ -33,6 +34,7 @@ public class HexGame {
     private boolean gameStarted;
     private boolean gameEnded;
     private String winner;
+    @Getter
     private PlayerState currentPlayer;
     private Cell[][] board;
 
