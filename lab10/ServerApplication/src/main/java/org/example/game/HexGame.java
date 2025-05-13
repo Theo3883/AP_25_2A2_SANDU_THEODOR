@@ -36,6 +36,8 @@ public class HexGame {
     private PlayerState currentPlayer;
     private Cell[][] board;
 
+    private boolean aiGame = false; // Add this field to the HexGame class and its getter/setter methods
+
     public HexGame(int boardSize, long timeControlSeconds) {
         this.gameId = generateGameId();
         this.boardSize = boardSize;
@@ -371,5 +373,21 @@ public class HexGame {
                 state.append("Waiting for opponent's move...\n");
             }
         }
+    }
+
+    public boolean isAiGame() {
+        return aiGame;
+    }
+
+    public void setAiGame(boolean aiGame) {
+        this.aiGame = aiGame;
+    }
+
+    public PlayerState getPlayer1State() {
+        return PlayerState.PLAYER1;
+    }
+
+    public PlayerState getPlayer2State() {
+        return PlayerState.PLAYER2;
     }
 }

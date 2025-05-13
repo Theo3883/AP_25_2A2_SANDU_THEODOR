@@ -68,6 +68,7 @@ public class GameServer {
             }
         }
         closeServerSocket();
+        gameManager.shutdown();
         clients.clear();
     }
 

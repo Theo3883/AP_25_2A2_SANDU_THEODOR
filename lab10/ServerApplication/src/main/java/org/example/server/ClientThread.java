@@ -77,6 +77,7 @@ public class ClientThread extends Thread {
         Command stateCmd = new StateCommand(this, server, gameManager);
         Command listCmd = new ListCommand(this, server, gameManager);
         Command stopCmd = new StopCommand(this, server, gameManager);
+        Command aiCmd = new AICommand(this, server, gameManager);
 
         commands.put("create", createCmd);
         commands.put("join", joinCmd);
@@ -84,6 +85,7 @@ public class ClientThread extends Thread {
         commands.put("state", stateCmd);
         commands.put("list", listCmd);
         commands.put("stop", stopCmd);
+        commands.put("ai", aiCmd);
 
         Command helpCmd = new HelpCommand(this, server, gameManager, commands);
         commands.put("help", helpCmd);
