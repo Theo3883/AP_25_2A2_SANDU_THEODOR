@@ -6,10 +6,7 @@ import org.example.ai.AIPlayer;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Getter
 @Slf4j
@@ -32,22 +29,16 @@ public class GameManager {
     
     public HexGame createAIGame(int boardSize, long timeControlSeconds, String humanPlayerId) {
         HexGame game = createGame(boardSize, timeControlSeconds);
-        
-        // Create AI player with unique ID
+
         String aiPlayerId = "AI-" + UUID.randomUUID().toString();
         AIPlayer aiPlayer = new AIPlayer(aiPlayerId);
-        
-        // Store AI player reference
+
         aiPlayers.put(aiPlayerId, aiPlayer);
-        
-        // Join game with human player
         game.joinGame(humanPlayerId);
-        
-        // Join game with AI player
+
         game.joinGame(aiPlayerId);
         game.setAiGame(true);
-        
-        // Schedule AI moves if human is player 1
+
         scheduleAiMove(game);
         
         log.info("New AI game created: {}. Human player: {}, AI player: {}", 
@@ -101,22 +92,19 @@ public class GameManager {
         if (!aiPlayerId.startsWith("AI-")) {
             return;
         }
-        
-        // Check if it's AI's turn
+
         boolean isAiTurn = (game.getCurrentPlayer() == game.getPlayer1State() && game.getPlayer1Id().equals(aiPlayerId)) ||
                           (game.getCurrentPlayer() == game.getPlayer2State() && game.getPlayer2Id().equals(aiPlayerId));
         
-        if (!isAiTurn) {
-            return;
-        }
-        
+        if (!isAiTurn) return;
+
         // Add a small delay before AI moves to simulate thinking
+        int thinkingTime = ThreadLocalRandom.current().nextInt(2, 6);
         aiExecutor.schedule(() -> {
             try {
                 if (game.isGameEnded()) {
                     return;
                 }
-                
                 AIPlayer aiPlayer = aiPlayers.get(aiPlayerId);
                 if (aiPlayer != null) {
                     int[] move = aiPlayer.makeMove(game);
@@ -127,13 +115,12 @@ public class GameManager {
             } catch (Exception e) {
                 log.error("Error in AI move execution", e);
             }
-        }, 1, TimeUnit.SECONDS);
+        }, thinkingTime, TimeUnit.SECONDS);
     }
 
     public void removeGame(String gameId) {
         HexGame game = activeGames.remove(gameId);
-        
-        // Clean up AI player if it was an AI game
+
         if (game != null && game.isAiGame()) {
             if (game.getPlayer1Id().startsWith("AI-")) {
                 aiPlayers.remove(game.getPlayer1Id());

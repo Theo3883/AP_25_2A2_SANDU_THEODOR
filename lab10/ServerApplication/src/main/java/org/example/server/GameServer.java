@@ -23,7 +23,7 @@ public class GameServer {
     public void start(int port) {
         try{
             serverSocket = new ServerSocket(port);
-            serverSocket.setSoTimeout(1000); // Set timeout to allow checking if server is still running
+            serverSocket.setSoTimeout(10000);
             log.info("Server started on port {}", port);
 
             while (running) {
@@ -35,7 +35,7 @@ public class GameServer {
                     clients.add(client);
                     client.start();
                 } catch (SocketTimeoutException _) {
-                    // This is expected due to the timeout - allows checking if server should continue running
+                    log.error("Waiting for players to connect");
                 } catch (IOException e) {
                     if (running) {
                         log.error("Error accepting client connection", e);
