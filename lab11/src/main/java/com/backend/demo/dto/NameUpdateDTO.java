@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CityNameUpdateDTO {
+public class NameUpdateDTO {
     private String name;
-} 
+}

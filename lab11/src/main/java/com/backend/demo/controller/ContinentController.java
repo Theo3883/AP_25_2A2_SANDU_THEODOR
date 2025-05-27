@@ -1,7 +1,7 @@
 package com.backend.demo.controller;
 
 import com.backend.demo.dto.ContinentDTO;
-import com.backend.demo.dto.ContinentNameUpdateDTO;
+import com.backend.demo.dto.NameUpdateDTO;
 import com.backend.demo.service.ContinentService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -47,8 +47,8 @@ public class ContinentController {
     @PutMapping("/{id}")
     public ResponseEntity<ContinentDTO> updateContinentName(
             @Parameter(description = "Continent ID", required = true) @PathVariable Integer id, 
-            @Parameter(description = "Updated continent name", required = true, schema = @Schema(implementation = ContinentNameUpdateDTO.class))
-            @RequestBody ContinentNameUpdateDTO updateDTO) {
+            @Parameter(description = "Updated continent name", required = true, schema = @Schema(implementation = NameUpdateDTO.class))
+            @RequestBody NameUpdateDTO updateDTO) {
         if (updateDTO.getName() == null || updateDTO.getName().trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
@@ -71,4 +71,4 @@ public class ContinentController {
             return ResponseEntity.notFound().build();
         }
     }
-} 
+}

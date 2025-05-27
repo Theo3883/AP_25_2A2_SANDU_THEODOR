@@ -1,7 +1,7 @@
 package com.backend.demo.controller;
 
 import com.backend.demo.dto.CityDTO;
-import com.backend.demo.dto.CityNameUpdateDTO;
+import com.backend.demo.dto.NameUpdateDTO;
 import com.backend.demo.service.CityService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -47,8 +47,8 @@ public class CityController {
     @PutMapping("/{id}")
     public ResponseEntity<CityDTO> updateCityName(
             @Parameter(description = "City ID", required = true) @PathVariable Integer id, 
-            @Parameter(description = "Updated city name", required = true, schema = @Schema(implementation = CityNameUpdateDTO.class))
-            @RequestBody CityNameUpdateDTO updateDTO) {
+            @Parameter(description = "Updated city name", required = true, schema = @Schema(implementation = NameUpdateDTO.class))
+            @RequestBody NameUpdateDTO updateDTO) {
         if (updateDTO.getName() == null || updateDTO.getName().trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
@@ -72,4 +72,4 @@ public class CityController {
             return ResponseEntity.notFound().build();
         }
     }
-} 
+}
