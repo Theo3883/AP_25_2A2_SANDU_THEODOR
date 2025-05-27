@@ -1,0 +1,52 @@
+.graph-container {
+    width: 100%;
+    height: 700px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 20px;
+    position: relative;
+}
+.graph-legend {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    font-size: 14px;
+}
+.legend-item {
+    margin: 5px 0;
+}
+.legend-circle {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+.zoom-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+.zoom-button {
+    width: 30px;
+    height: 30px;
+    margin: 2px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: 1px solid #45a049;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.zoom-button:hover {
+    background-color: #45a049;
+}
