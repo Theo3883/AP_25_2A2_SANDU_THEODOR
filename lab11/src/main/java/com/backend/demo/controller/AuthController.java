@@ -1,6 +1,8 @@
 package com.backend.demo.controller;
 
 import com.backend.demo.security.JwtTokenUtil;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -58,24 +60,10 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
     
+    @Setter
+    @Getter
     public static class AuthRequest {
         private String username;
         private String password;
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
     }
 }
