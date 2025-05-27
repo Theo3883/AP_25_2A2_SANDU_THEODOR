@@ -49,7 +49,6 @@ public class ContinentController {
             @Parameter(description = "Continent ID", required = true) @PathVariable Integer id, 
             @Parameter(description = "Updated continent name", required = true, schema = @Schema(implementation = ContinentNameUpdateDTO.class))
             @RequestBody ContinentNameUpdateDTO updateDTO) {
-        // Validate input
         if (updateDTO.getName() == null || updateDTO.getName().trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }

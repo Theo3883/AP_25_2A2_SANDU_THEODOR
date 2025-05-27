@@ -49,7 +49,6 @@ public class CityController {
             @Parameter(description = "City ID", required = true) @PathVariable Integer id, 
             @Parameter(description = "Updated city name", required = true, schema = @Schema(implementation = CityNameUpdateDTO.class))
             @RequestBody CityNameUpdateDTO updateDTO) {
-        // Validate input
         if (updateDTO.getName() == null || updateDTO.getName().trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }

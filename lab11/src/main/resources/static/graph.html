@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country Graph Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .graph-container {
+            width: 100%;
+            height: 700px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 20px;
+            position: relative;
+        }
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #666;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .view-options {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .view-link {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .view-link:hover {
+            background-color: #0056b3;
+        }
+        .graph-legend {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .legend-item {
+            margin: 5px 0;
+        }
+        .legend-circle {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .zoom-button {
+            width: 30px;
+            height: 30px;
+            margin: 2px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .zoom-button:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Country Graph Visualization</h1>
+        
+        <div class="view-options">
+            <a href="index.html" class="view-link">Color Map View</a>
+            <a href="graph.html" class="view-link">Graph View</a>
+        </div>
+        
+        <div class="controls">
+            <button id="refreshBtn">Refresh Graph</button>
+        </div>
+        
+        <div id="statusMessage" class="status" style="display: none;"></div>
+        
+        <div id="loading" class="loading">Loading graph data...</div>
+        
+        <div id="graphContainer" class="graph-container">
+            <div class="zoom-controls">
+                <button class="zoom-button" id="zoomIn">+</button>
+                <button class="zoom-button" id="zoomOut">-</button>
+                <button class="zoom-button" id="resetZoom">⟲</button>
+            </div>
+        </div>
+        
+        <div class="graph-legend">
+            <h3>Legend:</h3>
+            <div class="legend-item">
+                <span class="legend-circle" style="background-color: #1f77b4;"></span> Country Node
+            </div>
+            <div class="legend-item">
+                <span style="display: inline-block; width: 20px; border-top: 2px solid #999; margin-right: 5px;"></span> Border Connection
+            </div>
+            <p>
+                <strong>Note:</strong> Only countries that share borders are connected.
+                Hover over a node to see the country name and its color assignment.
+                Drag nodes to rearrange the graph.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            const graphContainer = document.getElementById('graphContainer');
+            const loadingElement = document.getElementById('loading');
+            const statusMessage = document.getElementById('statusMessage');
+            const zoomInBtn = document.getElementById('zoomIn');
+            const zoomOutBtn = document.getElementById('zoomOut');
+            const resetZoomBtn = document.getElementById('resetZoom');
+            
+            let currentZoom = 1;
+            let svg, g;
+            
+            loadGraphData();
+            refreshBtn.addEventListener('click', function() {
+                loadGraphData();
+            });
+            
+            function loadGraphData() {
+                loadingElement.style.display = 'block';
+                graphContainer.innerHTML = '';
+                
+                fetch('/api/countries/graph-data')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load graph data');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        loadingElement.style.display = 'none';
+                        const graphData = transformToGraphData(data);
+                        renderGraph(graphData);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching graph data:', error);
+                        loadingElement.textContent = 'Error loading graph data. Please try again.';
+                        loadingElement.style.color = 'red';
+                    });
+            }
+            
+            //transform country data to graph format
+            function transformToGraphData(countries) {
+                console.log("Raw countries data:", countries);
+                const nodes = countries.map(country => ({
+                    id: country.id,
+                    name: country.name,
+                    color: country.color
+                }));
+                
+                // Create links from neighbor relationships
+                const links = [];
+                countries.forEach(country => {
+                    if (country.neighborIds && country.neighborIds.length > 0) {
+                        country.neighborIds.forEach(neighborId => {
+                            const linkExists = links.some(link => 
+                                (link.source === country.id && link.target === neighborId) || 
+                                (link.source === neighborId && link.target === country.id)
+                            );
+                            
+                            if (!linkExists) {
+                                links.push({
+                                    source: country.id,
+                                    target: neighborId
+                                });
+                            }
+                        });
+                    }
+                });
+                
+                return { nodes, links };
+            }
+            
+            function renderGraph(graphData) {
+                const nodes = graphData.nodes;
+                const links = graphData.links;
+                
+                console.log("Nodes with colors:", nodes);
+                
+                if (nodes.length === 0) {
+                    showStatus('No countries found in the database', 'error');
+                    return;
+                }
+                
+                const validLinks = links.filter(link => {
+                    const sourceExists = nodes.some(node => node.id === link.source);
+                    const targetExists = nodes.some(node => node.id === link.target);
+                    return sourceExists && targetExists;
+                });
+                
+                const width = graphContainer.clientWidth;
+                const height = graphContainer.clientHeight;
+                
+                const zoomControls = document.querySelector('.zoom-controls');
+                if (zoomControls) {
+                    graphContainer.removeChild(zoomControls);
+                }
+                
+                d3.select("#graphContainer svg").remove();
+                
+                graphContainer.innerHTML += `
+                    <div class="zoom-controls">
+                        <button class="zoom-button" id="zoomIn">+</button>
+                        <button class="zoom-button" id="zoomOut">-</button>
+                        <button class="zoom-button" id="resetZoom">⟲</button>
+                    </div>
+                `;
+                
+                // Create new SVG with zoom support
+                svg = d3.select("#graphContainer").append("svg")
+                    .attr("width", "100%")
+                    .attr("height", "100%")
+                    .attr("viewBox", `0 0 ${width} ${height}`);
+                
+                const zoom = d3.zoom()
+                    .scaleExtent([0.1, 4])
+                    .on("zoom", (event) => {
+                        g.attr("transform", event.transform);
+                        currentZoom = event.transform.k;
+                    });
+                
+                svg.call(zoom);
+                
+                g = svg.append("g")
+                    .attr("width", width)
+                    .attr("height", height);
+                
+                const link = g.append("g")
+                    .selectAll("line")
+                    .data(validLinks)
+                    .enter().append("line")
+                    .attr("stroke", "#999")
+                    .attr("stroke-width", 2);
+                
+                const node = g.append("g")
+                    .selectAll("circle")
+                    .data(nodes)
+                    .enter().append("circle")
+                    .attr("r", 15)
+                    .attr("fill", d => {
+                        console.log(`Node ${d.name} color: ${d.color}`);
+                        return d.color || "#1f77b4";
+                    })
+                    .call(d3.drag()
+                        .on("start", dragstarted)
+                        .on("drag", dragged)
+                        .on("end", dragended));
+                
+                // Add labels
+                const label = g.append("g")
+                    .selectAll("text")
+                    .data(nodes)
+                    .enter().append("text")
+                    .text(d => d.name)
+                    .attr("font-size", "10px")
+                    .attr("dx", 15)
+                    .attr("dy", 4);
+                
+                node.append("title")
+                    .text(d => `${d.name}\nColor: ${d.color || 'None'}`);
+                
+                // Create a simulation with forces
+                const simulation = d3.forceSimulation(nodes)
+                    .force("link", d3.forceLink(validLinks).id(d => d.id).distance(100))
+                    .force("charge", d3.forceManyBody().strength(-300))
+                    .force("center", d3.forceCenter(width / 2, height / 2))
+                    .force("collide", d3.forceCollide().radius(30));
+                
+                simulation.on("tick", () => {
+                    link
+                        .attr("x1", d => d.source.x)
+                        .attr("y1", d => d.source.y)
+                        .attr("x2", d => d.target.x)
+                        .attr("y2", d => d.target.y);
+                    
+                    node
+                        .attr("cx", d => d.x = Math.max(15, Math.min(width - 15, d.x)))
+                        .attr("cy", d => d.y = Math.max(15, Math.min(height - 15, d.y)));
+                    
+                    label
+                        .attr("x", d => d.x)
+                        .attr("y", d => d.y);
+                });
+                
+                document.getElementById('zoomIn').onclick = function() {
+                    svg.transition().duration(300).call(zoom.scaleBy, 1.3);
+                };
+                
+                document.getElementById('zoomOut').onclick = function() {
+                    svg.transition().duration(300).call(zoom.scaleBy, 0.7);
+                };
+                
+                document.getElementById('resetZoom').onclick = function() {
+                    svg.transition().duration(300).call(
+                        zoom.transform,
+                        d3.zoomIdentity.translate(0, 0).scale(1)
+                    );
+                };
+                
+                svg.call(zoom.transform, d3.zoomIdentity.translate(width/4, height/4).scale(0.8));
+                
+                // Drag functions
+                function dragstarted(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
+                
+                function dragged(event, d) {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                }
+                
+                function dragended(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                }
+                
+                showStatus(`Graph rendered with ${nodes.length} countries and ${validLinks.length} connections`, 'success');
+            }
+            
+            function showStatus(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = 'status ' + type;
+                statusMessage.style.display = 'block';
+                
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

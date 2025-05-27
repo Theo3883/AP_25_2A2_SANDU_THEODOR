@@ -21,12 +21,13 @@ import java.util.Optional;
 @Component
 public class CityDataImporter {
     private static final Logger logger = LoggerFactory.getLogger(CityDataImporter.class);
-    
+
     private final CityRepository cityRepository;
     private final CountryRepository countryRepository;
     private final ContinentRepository continentRepository;
-    
-    public CityDataImporter(CityRepository cityRepository, CountryRepository countryRepository, ContinentRepository continentRepository) {
+
+    public CityDataImporter(CityRepository cityRepository, CountryRepository countryRepository,
+            ContinentRepository continentRepository) {
         this.cityRepository = cityRepository;
         this.countryRepository = countryRepository;
         this.continentRepository = continentRepository;
@@ -39,19 +40,18 @@ public class CityDataImporter {
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(new ClassPathResource(fileName).getInputStream()))) {
 
-            // Skip header
             String line = br.readLine();
             int count = 0;
 
             while ((line = br.readLine()) != null) {
                 String[] data = line.split(",");
-                if (data.length < 6) continue;
+                if (data.length < 6)
+                    continue;
 
                 String countryName = data[0].trim();
                 String cityName = data[1].trim();
                 String continentName = determineContinentForCountry(countryName);
 
-                // Find or create continent
                 Optional<Continent> continentOpt = continentRepository.findByName(continentName);
                 Continent continent;
 
@@ -64,7 +64,6 @@ public class CityDataImporter {
                     continent = continentOpt.get();
                 }
 
-                // Find or create country
                 Optional<Country> countryOpt = countryRepository.findByName(countryName);
                 Country country;
 
@@ -86,7 +85,6 @@ public class CityDataImporter {
                     city.setCountry(country);
                     city.setIsCapital(true);
 
-                    // Parse latitude and longitude
                     try {
                         city.setLatitude(Double.parseDouble(data[2].trim()));
                         city.setLongitude(Double.parseDouble(data[3].trim()));
@@ -120,15 +118,12 @@ public class CityDataImporter {
         logger.info("Clearing existing data from all tables");
 
         try {
-            // Clear cities
             logger.info("Clearing cities table");
             cityRepository.deleteAll();
-            
-            // Clear countries
+
             logger.info("Clearing countries table");
             countryRepository.deleteAll();
-            
-            // Clear continents
+
             logger.info("Clearing continents table");
             continentRepository.deleteAll();
 
@@ -140,15 +135,23 @@ public class CityDataImporter {
     }
 
     private String determineContinentForCountry(String countryName) {
-        if (List.of("United States", "Canada", "Mexico", "Costa Rica", "Panama", "Cuba", "Jamaica", "Haiti", "Dominican Republic").contains(countryName)) {
+        if (List.of("United States", "Canada", "Mexico", "Costa Rica", "Panama", "Cuba", "Jamaica", "Haiti",
+                "Dominican Republic").contains(countryName)) {
             return "North America";
-        } else if (List.of("Brazil", "Argentina", "Chile", "Peru", "Colombia", "Venezuela", "Ecuador", "Bolivia", "Paraguay", "Uruguay").contains(countryName)) {
+        } else if (List.of("Brazil", "Argentina", "Chile", "Peru", "Colombia", "Venezuela", "Ecuador", "Bolivia",
+                "Paraguay", "Uruguay").contains(countryName)) {
             return "South America";
-        } else if (List.of("United Kingdom", "France", "Germany", "Italy", "Spain", "Portugal", "Netherlands", "Belgium", "Switzerland", "Austria", "Norway", "Sweden", "Finland", "Denmark", "Greece", "Ukraine", "Poland", "Romania", "Russia").contains(countryName)) {
+        } else if (List.of("United Kingdom", "France", "Germany", "Italy", "Spain", "Portugal", "Netherlands",
+                "Belgium", "Switzerland", "Austria", "Norway", "Sweden", "Finland", "Denmark", "Greece", "Ukraine",
+                "Poland", "Romania", "Russia").contains(countryName)) {
             return "Europe";
-        } else if (List.of("China", "Japan", "India", "South Korea", "North Korea", "Vietnam", "Thailand", "Indonesia", "Malaysia", "Philippines", "Pakistan", "Iran", "Iraq", "Saudi Arabia", "Israel", "Turkey").contains(countryName)) {
+        } else if (List
+                .of("China", "Japan", "India", "South Korea", "North Korea", "Vietnam", "Thailand", "Indonesia",
+                        "Malaysia", "Philippines", "Pakistan", "Iran", "Iraq", "Saudi Arabia", "Israel", "Turkey")
+                .contains(countryName)) {
             return "Asia";
-        } else if (List.of("Egypt", "Nigeria", "South Africa", "Morocco", "Kenya", "Ethiopia", "Ghana", "Tanzania", "Sudan", "Algeria", "Tunisia").contains(countryName)) {
+        } else if (List.of("Egypt", "Nigeria", "South Africa", "Morocco", "Kenya", "Ethiopia", "Ghana", "Tanzania",
+                "Sudan", "Algeria", "Tunisia").contains(countryName)) {
             return "Africa";
         } else if (List.of("Australia", "New Zealand", "Papua New Guinea", "Fiji", "Samoa").contains(countryName)) {
             return "Oceania";
@@ -164,4 +167,4 @@ public class CityDataImporter {
 
         return countryName.substring(0, 2).toUpperCase();
     }
-} 
+}

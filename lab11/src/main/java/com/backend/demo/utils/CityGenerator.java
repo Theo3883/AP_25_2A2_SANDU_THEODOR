@@ -58,7 +58,6 @@ public class CityGenerator {
                 batch.add(city);
                 cities.add(city);
 
-                // Process in batches of 100
                 if (batch.size() >= 100) {
                     cityRepository.saveAll(batch);
                     batch.clear();

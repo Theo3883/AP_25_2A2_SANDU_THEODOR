@@ -38,7 +38,7 @@ public class HexGame {
     private PlayerState currentPlayer;
     private Cell[][] board;
 
-    private boolean aiGame = false; // Add this field to the HexGame class and its getter/setter methods
+    private boolean aiGame = false;
 
     public HexGame(int boardSize, long timeControlSeconds) {
         this.gameId = generateGameId();

@@ -28,12 +28,10 @@ public class ContinentService {
     }
 
     public ContinentDTO createContinent(ContinentDTO continentDTO) {
-        // Validate the continent data
         if (continentDTO.getName() == null || continentDTO.getName().trim().isEmpty()) {
             return null;
         }
-        
-        // Check if a continent with the same name already exists
+
         if (continentRepository.existsByName(continentDTO.getName())) {
             return null;
         }

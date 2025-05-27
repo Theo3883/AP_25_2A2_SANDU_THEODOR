@@ -58,7 +58,6 @@ public class AIPlayer {
             return pathBuildingMove;
         }
 
-
         return availableMoves.get(random.nextInt(availableMoves.size()));
     }
 

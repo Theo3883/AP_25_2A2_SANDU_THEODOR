@@ -33,7 +33,9 @@ public class Mapper {
                 country.getName(),
                 country.getCode(),
                 country.getContinent().getId(),
-                country.getContinent().getName()
+                country.getContinent().getName(),
+                null,
+                List.of()
         );
     }
 
@@ -61,4 +63,4 @@ public class Mapper {
                 .map(this::toCityDTO)
                 .collect(Collectors.toList());
     }
-} 
+}

@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 public class CityService {
@@ -26,7 +25,6 @@ public class CityService {
     private final CountryRepository countryRepository;
     private final CityGenerator cityGenerator;
     private final Mapper mapper;
-    private final Random random = new Random();
     
     @Autowired
     public CityService(CityRepository cityRepository, CountryRepository countryRepository, 
@@ -44,13 +42,13 @@ public class CityService {
 
     @Transactional
     public List<CityDTO> generateCities(int count) {
-        logger.info("Clearing existing cities from the database before generation");
-        
-        // Delete all cities directly
-        cityRepository.deleteAll();
-        logger.info("Successfully cleared all existing cities");
-        
-        // Now generate new cities
+        long existingCount = cityRepository.count();
+        if (existingCount > 0) {
+            logger.info("Cities already exist in the database ({}), skipping generation", existingCount);
+            List<City> existingCities = cityRepository.findAll();
+            return mapper.toCityDTOs(existingCities);
+        }
+
         logger.info("Starting city generation process for {} cities", count);
         List<City> generatedCities = cityGenerator.generateCities(count);
         logger.info("Completed city generation, created {} cities", generatedCities.size());
@@ -100,4 +98,4 @@ public class CityService {
         }
         return false;
     }
-} 
+}

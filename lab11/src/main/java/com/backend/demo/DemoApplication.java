@@ -1,5 +1,6 @@
 package com.backend.demo;
 
+import com.backend.demo.repository.CityRepository;
 import com.backend.demo.service.CityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +21,18 @@ public class DemoApplication {
 	}
 	
 	@Bean
-	public CommandLineRunner initializeDatabase(@Autowired CityService cityService) {
+	public CommandLineRunner initializeDatabase(
+	        @Autowired CityService cityService,
+	        @Autowired CityRepository cityRepository) {
 		return args -> {
 			try {
+			    long cityCount = cityRepository.count();
+			    if (cityCount > 0) {
+			        logger.info("Database already contains {} cities, skipping city generation", cityCount);
+			        return;
+			    }
+			    
+				logger.info("Generating {} cities", CITIES_TO_GENERATE);
 				cityService.generateCities(CITIES_TO_GENERATE);
 				logger.info("Completed city generation");
 

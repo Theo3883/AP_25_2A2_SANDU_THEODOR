@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,4 +17,6 @@ public class CountryDTO {
     private String code;
     private Integer continentId;
     private String continentName;
-} 
+    private String color;
+    private List<Integer> neighborIds;
+}
