@@ -15,7 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -37,6 +39,9 @@ public class CityDataImporter {
     public void importCities(String fileName) throws IOException {
         logger.info("Starting to import cities from {}", fileName);
 
+        Map<String, Country> existingCountries = new HashMap<>();
+        Map<String, Continent> existingContinents = new HashMap<>();
+
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(new ClassPathResource(fileName).getInputStream()))) {
 
@@ -52,30 +57,53 @@ public class CityDataImporter {
                 String cityName = data[1].trim();
                 String continentName = determineContinentForCountry(countryName);
 
-                Optional<Continent> continentOpt = continentRepository.findByName(continentName);
-                Continent continent;
-
-                if (continentOpt.isEmpty()) {
-                    continent = new Continent();
-                    continent.setName(continentName);
-                    continent = continentRepository.save(continent);
-                    logger.debug("Created new continent: {}", continentName);
-                } else {
-                    continent = continentOpt.get();
+                // Check if continent exists in our map
+                Continent continent = existingContinents.get(continentName);
+                if (continent == null) {
+                    // Check if continent exists in database
+                    Optional<Continent> continentOpt = continentRepository.findByName(continentName);
+                    if (continentOpt.isEmpty()) {
+                        continent = new Continent();
+                        continent.setName(continentName);
+                        continent = continentRepository.save(continent);
+                        logger.debug("Created new continent: {}", continentName);
+                    } else {
+                        continent = continentOpt.get();
+                    }
+                    existingContinents.put(continentName, continent);
                 }
 
-                Optional<Country> countryOpt = countryRepository.findByName(countryName);
-                Country country;
+                // Generate country code for lookup
+                String countryCode = generateCountryCode(countryName);
 
-                if (countryOpt.isEmpty()) {
-                    country = new Country();
-                    country.setName(countryName);
-                    country.setContinent(continent);
-                    country.setCode(generateCountryCode(countryName));
-                    country = countryRepository.save(country);
-                    logger.debug("Created new country: {}", countryName);
-                } else {
-                    country = countryOpt.get();
+                // Check if country exists in our map
+                Country country = existingCountries.get(countryName);
+                if (country == null) {
+                    // Try to find by name first
+                    Optional<Country> countryOpt = countryRepository.findByName(countryName);
+                    
+                    // If not found by name, try by code
+                    if (countryOpt.isEmpty()) {
+                        countryOpt = countryRepository.findByCode(countryCode);
+                    }
+
+                    if (countryOpt.isEmpty()) {
+                        country = new Country();
+                        country.setName(countryName);
+                        country.setContinent(continent);
+                        country.setCode(countryCode);
+                        country = countryRepository.save(country);
+                        logger.debug("Created new country: {}", countryName);
+                    } else {
+                        country = countryOpt.get();
+                        // Update continent if necessary
+                        if (country.getContinent() == null || !country.getContinent().equals(continent)) {
+                            country.setContinent(continent);
+                            country = countryRepository.save(country);
+                            logger.debug("Updated continent for country: {}", countryName);
+                        }
+                    }
+                    existingCountries.put(countryName, country);
                 }
 
                 // Create city
@@ -92,6 +120,18 @@ public class CityDataImporter {
                         logger.warn("Invalid coordinates for {}: {}, {}", cityName, data[2], data[3]);
                         city.setLatitude(0.0);
                         city.setLongitude(0.0);
+                    }
+
+                    // Check if population data exists
+                    if (data.length > 5) {
+                        try {
+                            String popStr = data[5].trim().replaceAll("[^0-9]", "");
+                            if (!popStr.isEmpty()) {
+                                city.setPopulation(Integer.parseInt(popStr));
+                            }
+                        } catch (NumberFormatException e) {
+                            logger.warn("Invalid population for {}: {}", cityName, data[5]);
+                        }
                     }
 
                     cityRepository.save(city);

@@ -62,10 +62,18 @@ public class CountryColoringService {
 
     private Map<Country, List<Country>> buildAdjacencyMap(List<Country> countries) {
         Map<Country, List<Country>> adjacencyMap = new HashMap<>();
+        int totalEdges = 0;
+        
         for (Country country : countries) {
             List<Country> neighbors = country.getNeighbors();
             adjacencyMap.put(country, neighbors != null ? new ArrayList<>(neighbors) : new ArrayList<>());
+            totalEdges += neighbors != null ? neighbors.size() : 0;
         }
+        
+        logger.info("Built adjacency map with {} countries and {} edges (average degree: {})", 
+                countries.size(), totalEdges/2, 
+                countries.isEmpty() ? 0 : (double)totalEdges/countries.size());
+                
         return adjacencyMap;
     }
 

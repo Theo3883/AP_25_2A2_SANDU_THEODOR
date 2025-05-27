@@ -13,6 +13,8 @@ import java.util.Optional;
 public interface CountryRepository extends JpaRepository<Country, Integer> {
 
     Optional<Country> findByName(String name);
+    
+    Optional<Country> findByCode(String code);
 
     @Query("SELECT c FROM Country c JOIN FETCH c.continent")
     List<Country> findAllWithContinent();
@@ -26,4 +28,7 @@ public interface CountryRepository extends JpaRepository<Country, Integer> {
     @Modifying
     @Query("UPDATE Country c SET c.color = null")
     void resetAllColors();
+    
+    @Query("SELECT c FROM Country c LEFT JOIN c.neighbors n WHERE n.id IS NULL")
+    List<Country> findCountriesWithoutNeighbors();
 }

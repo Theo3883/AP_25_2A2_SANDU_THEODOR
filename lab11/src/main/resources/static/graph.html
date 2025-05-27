@@ -129,6 +129,9 @@
             color: white;
             border: 1px solid #45a049;
             border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .zoom-button:hover {
             background-color: #45a049;
@@ -223,29 +226,46 @@
                 const nodes = countries.map(country => ({
                     id: country.id,
                     name: country.name,
+                    code: country.code,
+                    continentId: country.continentId,
+                    continentName: country.continentName,
                     color: country.color
                 }));
                 
                 // Create links from neighbor relationships
                 const links = [];
+                const maxConnectionsPerCountry = 5; // Limit connections per country
+                const processedPairs = new Set(); // Track processed connections to avoid duplicates
+                
                 countries.forEach(country => {
                     if (country.neighborIds && country.neighborIds.length > 0) {
-                        country.neighborIds.forEach(neighborId => {
-                            const linkExists = links.some(link => 
-                                (link.source === country.id && link.target === neighborId) || 
-                                (link.source === neighborId && link.target === country.id)
-                            );
+                        // Limit number of connections per country
+                        const connections = Math.min(country.neighborIds.length, maxConnectionsPerCountry);
+                        
+                        for (let i = 0; i < connections; i++) {
+                            const neighborId = country.neighborIds[i];
+                            // Create a unique key for each country pair (always put smaller ID first)
+                            const pairKey = [Math.min(country.id, neighborId), Math.max(country.id, neighborId)].join('-');
                             
-                            if (!linkExists) {
-                                links.push({
-                                    source: country.id,
-                                    target: neighborId
-                                });
+                            if (!processedPairs.has(pairKey)) {
+                                processedPairs.add(pairKey);
+                                
+                                // Check if both nodes exist before adding the link
+                                const sourceExists = nodes.some(node => node.id === country.id);
+                                const targetExists = nodes.some(node => node.id === neighborId);
+                                
+                                if (sourceExists && targetExists) {
+                                    links.push({
+                                        source: country.id,
+                                        target: neighborId
+                                    });
+                                }
                             }
-                        });
+                        }
                     }
                 });
                 
+                console.log(`Processed ${nodes.length} nodes and ${links.length} connections`);
                 return { nodes, links };
             }
             
@@ -303,46 +323,94 @@
                     .attr("width", width)
                     .attr("height", height);
                 
+                // Group nodes by continent for better visualization
+                const continentGroups = {};
+                nodes.forEach(node => {
+                    if (node.continentId) {
+                        if (!continentGroups[node.continentId]) {
+                            continentGroups[node.continentId] = [];
+                        }
+                        continentGroups[node.continentId].push(node);
+                    }
+                });
+                
+                // Create continent hulls if needed
+                for (const continentId in continentGroups) {
+                    if (continentGroups[continentId].length > 5) {
+                        // Calculation of hulls would go here if needed
+                    }
+                }
+                
                 const link = g.append("g")
                     .selectAll("line")
                     .data(validLinks)
                     .enter().append("line")
                     .attr("stroke", "#999")
-                    .attr("stroke-width", 2);
+                    .attr("stroke-opacity", 0.6)
+                    .attr("stroke-width", 1.5);
                 
                 const node = g.append("g")
                     .selectAll("circle")
                     .data(nodes)
                     .enter().append("circle")
-                    .attr("r", 15)
-                    .attr("fill", d => {
-                        console.log(`Node ${d.name} color: ${d.color}`);
-                        return d.color || "#1f77b4";
-                    })
+                    .attr("r", d => d.isCapital ? 8 : 5)
+                    .attr("fill", d => d.color || "#1f77b4")
+                    .attr("stroke", "#fff")
+                    .attr("stroke-width", 1.5)
                     .call(d3.drag()
                         .on("start", dragstarted)
                         .on("drag", dragged)
                         .on("end", dragended));
                 
-                // Add labels
+                // Show labels for important nodes only
                 const label = g.append("g")
                     .selectAll("text")
                     .data(nodes)
                     .enter().append("text")
                     .text(d => d.name)
                     .attr("font-size", "10px")
-                    .attr("dx", 15)
-                    .attr("dy", 4);
+                    .attr("dx", 12)
+                    .attr("dy", 4)
+                    .style("opacity", d => {
+                        // Show labels for countries with many connections or based on other criteria
+                        const connectionCount = validLinks.filter(link => 
+                            link.source.id === d.id || link.source === d.id || 
+                            link.target.id === d.id || link.target === d.id
+                        ).length;
+                        return connectionCount > 2 ? 0.9 : 0.3;
+                    });
                 
                 node.append("title")
-                    .text(d => `${d.name}\nColor: ${d.color || 'None'}`);
+                    .text(d => `${d.name}\nContinent: ${d.continentName || 'Unknown'}\nColor: ${d.color || 'None'}`);
                 
-                // Create a simulation with forces
+                // Create a simulation with forces - adjusted for better layout
                 const simulation = d3.forceSimulation(nodes)
                     .force("link", d3.forceLink(validLinks).id(d => d.id).distance(100))
-                    .force("charge", d3.forceManyBody().strength(-300))
+                    .force("charge", d3.forceManyBody().strength(-200))
                     .force("center", d3.forceCenter(width / 2, height / 2))
+                    .force("x", d3.forceX(width / 2).strength(0.05))
+                    .force("y", d3.forceY(height / 2).strength(0.05))
                     .force("collide", d3.forceCollide().radius(30));
+                
+                // Handle isolated nodes display
+                const isolatedNodes = nodes.filter(node => 
+                    !validLinks.some(link => 
+                        link.source.id === node.id || link.source === node.id || 
+                        link.target.id === node.id || link.target === node.id
+                    )
+                );
+                
+                if (isolatedNodes.length > 0) {
+                    showStatus(`Found ${isolatedNodes.length} isolated countries with no connections. They are positioned on the edges.`, 'info');
+                    
+                    // Position isolated nodes in a circle around the main graph
+                    const radius = Math.min(width, height) * 0.4;
+                    isolatedNodes.forEach((node, i) => {
+                        const angle = (i / isolatedNodes.length) * 2 * Math.PI;
+                        node.fx = width/2 + radius * Math.cos(angle);
+                        node.fy = height/2 + radius * Math.sin(angle);
+                    });
+                }
                 
                 simulation.on("tick", () => {
                     link
@@ -359,6 +427,10 @@
                         .attr("x", d => d.x)
                         .attr("y", d => d.y);
                 });
+                
+                setTimeout(() => {
+                    simulation.stop();
+                }, 10000);
                 
                 document.getElementById('zoomIn').onclick = function() {
                     svg.transition().duration(300).call(zoom.scaleBy, 1.3);
@@ -377,7 +449,6 @@
                 
                 svg.call(zoom.transform, d3.zoomIdentity.translate(width/4, height/4).scale(0.8));
                 
-                // Drag functions
                 function dragstarted(event, d) {
                     if (!event.active) simulation.alphaTarget(0.3).restart();
                     d.fx = d.x;
@@ -391,11 +462,15 @@
                 
                 function dragended(event, d) {
                     if (!event.active) simulation.alphaTarget(0);
-                    d.fx = null;
-                    d.fy = null;
+                    if (!isolatedNodes.includes(d)) {
+                        d.fx = null;
+                        d.fy = null;
+                    }
                 }
                 
-                showStatus(`Graph rendered with ${nodes.length} countries and ${validLinks.length} connections`, 'success');
+                const actualCountries = nodes.length;
+                const actualConnections = validLinks.length;
+                showStatus(`Graph rendered with ${actualCountries} countries and ${actualConnections} connections`, 'success');
             }
             
             function showStatus(message, type) {
