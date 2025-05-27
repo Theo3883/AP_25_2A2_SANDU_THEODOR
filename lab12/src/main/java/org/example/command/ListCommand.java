@@ -1,11 +1,13 @@
 package org.example.command;
 
+import org.apache.logging.log4j.Logger;
 import org.example.loader.ClassLoader;
+import org.example.util.LoggerUtil;
 
 import java.util.List;
 
 public class ListCommand extends Command {
-    
+    private static final Logger logger = LoggerUtil.getInstance().createLogger(ListCommand.class);
     private final ClassLoader classLoader;
     
     public ListCommand(ClassLoader classLoader) {
@@ -19,19 +21,19 @@ public class ListCommand extends Command {
             List<String> availableClasses = classLoader.listAvailableClasses();
             
             if (availableClasses.isEmpty()) {
-                System.out.println("No classes found in the current project.");
+                logger.info("No classes found in the current project.");
                 return true;
             }
             
-            System.out.println("Available classes in the current project:");
+            logger.info("Available classes in the current project:");
             for (String className : availableClasses) {
-                System.out.println("  - " + className);
+                logger.info("  - " + className);
             }
             
-            System.out.println("\nUse 'analyze <class name>' to analyze a specific class");
+            logger.info("\nUse 'analyze <class name>' to analyze a specific class");
             return true;
         } catch (Exception e) {
-            System.out.println("Error listing classes: " + e.getMessage());
+            logger.error("Error listing classes: " + e.getMessage());
             return true;
         }
     }

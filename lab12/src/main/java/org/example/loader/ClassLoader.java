@@ -1,6 +1,8 @@
 package org.example.loader;
 
+import org.apache.logging.log4j.Logger;
 import org.example.compiler.JavaCompiler;
+import org.example.util.LoggerUtil;
 
 import java.io.File;
 import java.net.URL;
@@ -11,6 +13,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class ClassLoader {
+    private static final Logger logger = LoggerUtil.getInstance().createLogger(ClassLoader.class);
     private final List<Class<?>> loadedClasses = new ArrayList<>();
     private final List<String> classPaths = new ArrayList<>();
     private URLClassLoader urlClassLoader;
@@ -48,7 +51,7 @@ public class ClassLoader {
 
             urlClassLoader = new URLClassLoader(urls.toArray(new URL[0]), getClass().getClassLoader());
         } catch (Exception e) {
-            System.err.println("Error initializing class loader: " + e.getMessage());
+            logger.error("Error initializing class loader: " + e.getMessage());
         }
     }
 
@@ -69,12 +72,12 @@ public class ClassLoader {
         }
 
         if (!javaFiles.isEmpty()) {
-            System.out.println("Compiling " + javaFiles.size() + " Java files...");
+            logger.info("Compiling " + javaFiles.size() + " Java files...");
             boolean success = javaCompiler.compile(javaFiles);
             if (!success) {
-                System.err.println("Failed to compile some Java files. See errors above.");
+                logger.error("Failed to compile some Java files. See errors above.");
             } else {
-                System.out.println("Compilation successful!");
+                logger.info("Compilation successful!");
             }
             initializeClassLoader();
         }
@@ -94,7 +97,7 @@ public class ClassLoader {
                         Class<?> clazz = urlClassLoader.loadClass(className);
                         loadedClasses.add(clazz);
                     } catch (ClassNotFoundException e) {
-                        System.err.println("Could not load compiled class: " + className);
+                        logger.error("Could not load compiled class: " + className);
                     }
                 }
             }
@@ -134,7 +137,7 @@ public class ClassLoader {
             // If no package declaration, return just the class name
             return className;
         } catch (Exception e) {
-            System.err.println("Error reading Java file: " + e.getMessage());
+            logger.error("Error reading Java file: " + e.getMessage());
             return null;
         }
     }
@@ -200,7 +203,7 @@ public class ClassLoader {
                 try {
                     urls.add(file.toURI().toURL());
                 } catch (Exception e) {
-                    System.err.println("Error adding JAR to classpath: " + file.getAbsolutePath());
+                    logger.error("Error adding JAR to classpath: " + file.getAbsolutePath());
                 }
             }
         }
@@ -231,7 +234,7 @@ public class ClassLoader {
                         try {
                             loadedClasses.add(urlClassLoader.loadClass(className));
                         } catch (Exception e) {
-                            System.err.println("Error loading class " + className + ": " + e.getMessage());
+                            logger.error("Error loading class " + className + ": " + e.getMessage());
                         }
                     });
         }
@@ -263,7 +266,7 @@ public class ClassLoader {
             Class<?> clazz = urlClassLoader.loadClass(classPath);
             loadedClasses.add(clazz);
         } catch (Exception e) {
-            System.err.println("Error loading class from file " + classFile.getName() + ": " + e.getMessage());
+            logger.error("Error loading class from file " + classFile.getName() + ": " + e.getMessage());
         }
     }
 }

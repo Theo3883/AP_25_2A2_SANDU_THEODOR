@@ -1,9 +1,12 @@
 package org.example.command;
 
+import org.apache.logging.log4j.Logger;
+import org.example.util.LoggerUtil;
+
 import java.util.List;
 
 public class HelpCommand extends Command {
-    
+    private static final Logger logger = LoggerUtil.getInstance().createLogger(HelpCommand.class);
     private final List<Command> commands;
     
     public HelpCommand(List<Command> commands) {
@@ -13,10 +16,10 @@ public class HelpCommand extends Command {
     
     @Override
     public boolean execute(String[] args) {
-        System.out.println("Available commands:");
+        logger.info("Available commands:");
         
         for (Command command : commands) {
-            System.out.printf("  %-10s - %s%n", command.getName(), command.getDescription());
+            logger.info(String.format("  %-10s - %s", command.getName(), command.getDescription()));
         }
         
         return true;

@@ -1,11 +1,15 @@
 package org.example.compiler;
 
+import org.apache.logging.log4j.Logger;
+import org.example.util.LoggerUtil;
+
 import javax.tools.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class JavaCompiler {
+    private static final Logger logger = LoggerUtil.getInstance().createLogger(JavaCompiler.class);
     private final javax.tools.JavaCompiler compiler;
     private final StandardJavaFileManager fileManager;
 
@@ -39,20 +43,20 @@ public class JavaCompiler {
             
             if (!success) {
                 for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-                    System.err.println(diagnostic.toString());
+                    logger.error(diagnostic.toString());
                 }
             }
             
             return success;
         } catch (Exception e) {
-            System.err.println("Compilation error: " + e.getMessage());
+            logger.error("Compilation error: " + e.getMessage());
             e.printStackTrace();
             return false;
         } finally {
             try {
                 fileManager.close();
             } catch (Exception e) {
-                System.err.println("Error closing file manager: " + e.getMessage());
+                logger.error("Error closing file manager: " + e.getMessage());
             }
         }
     }

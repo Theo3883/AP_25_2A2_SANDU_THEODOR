@@ -1,5 +1,7 @@
 package org.example.test;
 
+import org.apache.logging.log4j.Logger;
+import org.example.util.LoggerUtil;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
@@ -9,6 +11,7 @@ import org.junit.platform.launcher.listeners.TestExecutionSummary;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 
 public class TestRunner {
+    private static final Logger logger = LoggerUtil.getInstance().createLogger(TestRunner.class);
     private int totalTests = 0;
     private int passedTests = 0;
     private int failedTests = 0;
@@ -33,32 +36,32 @@ public class TestRunner {
             passedTests += summary.getTestsSucceededCount();
             failedTests += summary.getTestsFailedCount();
 
-            System.out.println("\nTest Results:");
-            System.out.println("  Started: " + summary.getTestsStartedCount());
-            System.out.println("  Succeeded: " + summary.getTestsSucceededCount());
-            System.out.println("  Failed: " + summary.getTestsFailedCount());
+            logger.info("\nTest Results:");
+            logger.info("  Started: " + summary.getTestsStartedCount());
+            logger.info("  Succeeded: " + summary.getTestsSucceededCount());
+            logger.info("  Failed: " + summary.getTestsFailedCount());
 
             if (summary.getTestsFailedCount() > 0) {
-                System.out.println("\nFailed Tests:");
+                logger.info("\nFailed Tests:");
                 summary.getFailures().forEach(failure -> {
-                    System.out.println("  - " + failure.getTestIdentifier().getDisplayName());
-                    System.out.println("    Reason: " + failure.getException().getMessage());
+                    logger.info("  - " + failure.getTestIdentifier().getDisplayName());
+                    logger.info("    Reason: " + failure.getException().getMessage());
                 });
             }
             
         } catch (Exception e) {
-            System.err.println("Error running tests for " + testClass.getName() + ": " + e.getMessage());
+            logger.error("Error running tests for " + testClass.getName() + ": " + e.getMessage());
         }
     }
 
     public void printStatistics() {
-        System.out.println("\n" + "=".repeat(80));
-        System.out.println("Test Execution Summary");
-        System.out.println("-".repeat(80));
-        System.out.println("Total Tests: " + totalTests);
-        System.out.println("Passed: " + passedTests);
-        System.out.println("Failed: " + failedTests);
-        System.out.println("=".repeat(80));
+        logger.info("\n" + "=".repeat(80));
+        logger.info("Test Execution Summary");
+        logger.info("-".repeat(80));
+        logger.info("Total Tests: " + totalTests);
+        logger.info("Passed: " + passedTests);
+        logger.info("Failed: " + failedTests);
+        logger.info("=".repeat(80));
     }
     
     public void reset() {

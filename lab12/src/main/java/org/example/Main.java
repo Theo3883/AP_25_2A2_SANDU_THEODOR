@@ -1,12 +1,16 @@
 package org.example;
 
+import org.apache.logging.log4j.Logger;
 import org.example.command.*;
 import org.example.loader.ClassLoader;
 import org.example.test.TestRunner;
+import org.example.util.LoggerUtil;
 
 import java.util.*;
 
 public class Main {
+    private static final Logger logger = LoggerUtil.getInstance().createLogger(Main.class);
+    
     public static void main(String[] args) {
         ClassLoader classLoader = new ClassLoader();
         TestRunner testRunner = new TestRunner();
@@ -45,8 +49,8 @@ public class Main {
                 String[] commandArgs = parts.length > 1 ? parts[1].trim().split("\\s+") : new String[0];
                 continueRunning = command.execute(commandArgs);
             } else {
-                System.out.println("Unknown command: " + commandName);
-                System.out.println("Type 'help' to see available commands");
+                logger.error("Unknown command: " + commandName);
+                logger.info("Type 'help' to see available commands");
             }
         }
         

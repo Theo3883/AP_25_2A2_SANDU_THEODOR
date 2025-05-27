@@ -1,6 +1,8 @@
 package org.example.command;
 
+import org.apache.logging.log4j.Logger;
 import org.example.loader.ClassLoader;
+import org.example.util.LoggerUtil;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceClassVisitor;
@@ -12,7 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class BytecodeCommand extends Command {
-
+    private static final Logger logger = LoggerUtil.getInstance().createLogger(BytecodeCommand.class);
     private final ClassLoader classLoader;
 
     public BytecodeCommand(ClassLoader classLoader) {
@@ -23,8 +25,8 @@ public class BytecodeCommand extends Command {
     @Override
     public boolean execute(String[] args) {
         if (args.length < 1) {
-            System.out.println("Error: Please provide a command and class name");
-            System.out.println("Usage: bytecode <show|instrument|generate> <class name or file path>");
+            logger.error("Error: Please provide a command and class name");
+            logger.info("Usage: bytecode <show|instrument|generate> <class name or file path>");
             return true;
         }
 
@@ -33,29 +35,29 @@ public class BytecodeCommand extends Command {
         switch (operation) {
             case "show":
                 if (args.length < 2) {
-                    System.out.println("Error: Please provide a class name or file path");
-                    System.out.println("Examples:");
-                    System.out.println("  bytecode show com.example.MyClass");
-                    System.out.println("  bytecode show path/to/MyClass.class");
-                    System.out.println("  bytecode show path/to/MyClass.java");
+                    logger.error("Error: Please provide a class name or file path");
+                    logger.info("Examples:");
+                    logger.info("  bytecode show com.example.MyClass");
+                    logger.info("  bytecode show path/to/MyClass.class");
+                    logger.info("  bytecode show path/to/MyClass.java");
                     return true;
                 }
                 return showBytecode(args[1]);
             case "instrument":
                 if (args.length < 2) {
-                    System.out.println("Error: Please provide a class name or file path");
-                    System.out.println("Examples:");
-                    System.out.println("  bytecode instrument com.example.MyClass");
-                    System.out.println("  bytecode instrument path/to/MyClass.class");
-                    System.out.println("  bytecode instrument path/to/MyClass.java");
+                    logger.error("Error: Please provide a class name or file path");
+                    logger.info("Examples:");
+                    logger.info("  bytecode instrument com.example.MyClass");
+                    logger.info("  bytecode instrument path/to/MyClass.class");
+                    logger.info("  bytecode instrument path/to/MyClass.java");
                     return true;
                 }
                 return instrumentClass(args[1]);
             case "generate":
                 return generateClass(args.length > 1 ? args[1] : "GeneratedClass");
             default:
-                System.out.println("Error: Unknown operation: " + operation);
-                System.out.println("Available operations: show, instrument, generate");
+                logger.error("Error: Unknown operation: " + operation);
+                logger.info("Available operations: show, instrument, generate");
                 return true;
         }
     }
@@ -69,19 +71,19 @@ public class BytecodeCommand extends Command {
 
             Class<?> clazz = classLoader.loadClassByName(className);
             if (clazz == null) {
-                System.out.println("Error: Class not found: " + className);
-                System.out.println("Make sure to use the fully qualified class name (e.g., org.example.MyClass)");
+                logger.error("Error: Class not found: " + className);
+                logger.info("Make sure to use the fully qualified class name (e.g., org.example.MyClass)");
                 return true;
             }
 
-            System.out.println("\nBytecode for class: " + clazz.getName());
-            System.out.println("-".repeat(80));
+            logger.info("\nBytecode for class: " + clazz.getName());
+            logger.info("-".repeat(80));
 
             String resourceName = clazz.getName().replace('.', '/') + ".class";
             java.net.URL url = clazz.getClassLoader().getResource(resourceName);
 
             if (url == null) {
-                System.out.println("Error: Could not find class file for: " + className);
+                logger.error("Error: Could not find class file for: " + className);
                 return true;
             }
 
@@ -93,11 +95,11 @@ public class BytecodeCommand extends Command {
             TraceClassVisitor tcv = new TraceClassVisitor(null, new Textifier(), pw);
             cr.accept(tcv, ClassReader.SKIP_DEBUG);
 
-            System.out.println(sw);
+            logger.info(sw.toString());
             return true;
 
         } catch (Exception e) {
-            System.out.println("Error displaying bytecode: " + e.getMessage());
+            logger.error("Error displaying bytecode: " + e.getMessage());
             e.printStackTrace();
             return true;
         }
@@ -112,18 +114,18 @@ public class BytecodeCommand extends Command {
 
             Class<?> clazz = classLoader.loadClassByName(className);
             if (clazz == null) {
-                System.out.println("Error: Class not found: " + className);
-                System.out.println("Make sure to use the fully qualified class name (e.g., org.example.MyClass)");
+                logger.error("Error: Class not found: " + className);
+                logger.info("Make sure to use the fully qualified class name (e.g., org.example.MyClass)");
                 return true;
             }
-            System.out.println("\nInstrumenting class: " + clazz.getName());
-            System.out.println("-".repeat(80));
+            logger.info("\nInstrumenting class: " + clazz.getName());
+            logger.info("-".repeat(80));
 
             String resourceName = clazz.getName().replace('.', '/') + ".class";
             java.net.URL url = clazz.getClassLoader().getResource(resourceName);
 
             if (url == null) {
-                System.out.println("Error: Could not find class file for: " + className);
+                logger.error("Error: Could not find class file for: " + className);
                 return true;
             }
             byte[] classBytes = Files.readAllBytes(Paths.get(url.toURI()));
@@ -166,12 +168,12 @@ public class BytecodeCommand extends Command {
             String outputPath = "instrumented_" + clazz.getSimpleName() + ".class";
             Files.write(Paths.get(outputPath), instrumentedBytes);
 
-            System.out.println("Class successfully instrumented and saved to: " + outputPath);
-            System.out.println("Each method now logs when it's entered.");
+            logger.info("Class successfully instrumented and saved to: " + outputPath);
+            logger.info("Each method now logs when it's entered.");
             return true;
 
         } catch (Exception e) {
-            System.out.println("Error instrumenting class: " + e.getMessage());
+            logger.error("Error instrumenting class: " + e.getMessage());
             e.printStackTrace();
             return true;
         }
@@ -181,7 +183,7 @@ public class BytecodeCommand extends Command {
         if (input.contains("/") || input.contains("\\") || input.endsWith(".class") || input.endsWith(".java")) {
             File file = new File(input);
             if (!file.exists()) {
-                System.out.println("Error: File not found: " + input);
+                logger.error("Error: File not found: " + input);
                 return null;
             }
 
@@ -190,13 +192,13 @@ public class BytecodeCommand extends Command {
                 try {
                     classLoader.loadClasses(); //compiles
                 } catch (Exception e) {
-                    System.out.println("Error compiling Java file: " + e.getMessage());
+                    logger.error("Error compiling Java file: " + e.getMessage());
                     return null;
                 }
 
                 String className = classLoader.getClassNameFromJavaFile(input);
                 if (className == null) {
-                    System.out.println("Error: Could not determine class name from file: " + input);
+                    logger.error("Error: Could not determine class name from file: " + input);
                     return null;
                 }
                 return className;
@@ -207,7 +209,7 @@ public class BytecodeCommand extends Command {
                 try {
                     classLoader.loadClasses();
                 } catch (Exception e) {
-                    System.out.println("Error loading class file: " + e.getMessage());
+                    logger.error("Error loading class file: " + e.getMessage());
                     return null;
                 }
 
@@ -222,7 +224,7 @@ public class BytecodeCommand extends Command {
                             }
                         }
                     } catch (Exception e) {
-                        System.out.println("Warning: Could not verify class name. Using: " + probableClassName);
+                        logger.warn("Warning: Could not verify class name. Using: " + probableClassName);
                     }
                 }
                 return probableClassName;
@@ -233,8 +235,8 @@ public class BytecodeCommand extends Command {
 
     private boolean generateClass(String className) {
         try {
-            System.out.println("\nGenerating new class: " + className);
-            System.out.println("-".repeat(80));
+            logger.info("\nGenerating new class: " + className);
+            logger.info("-".repeat(80));
 
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 
@@ -287,16 +289,16 @@ public class BytecodeCommand extends Command {
             String outputPath = className + ".class";
             Files.write(Paths.get(outputPath), classBytes);
 
-            System.out.println("Class successfully generated and saved to: " + outputPath);
-            System.out.println("The class has:");
-            System.out.println("- A constructor");
-            System.out.println("- A 'greet' method that takes a name and returns a greeting");
-            System.out.println("- A main method that creates an instance and calls greet()");
+            logger.info("Class successfully generated and saved to: " + outputPath);
+            logger.info("The class has:");
+            logger.info("- A constructor");
+            logger.info("- A 'greet' method that takes a name and returns a greeting");
+            logger.info("- A main method that creates an instance and calls greet()");
 
             return true;
 
         } catch (Exception e) {
-            System.out.println("Error generating class: " + e.getMessage());
+            logger.error("Error generating class: " + e.getMessage());
             e.printStackTrace();
             return true;
         }

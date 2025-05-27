@@ -1,7 +1,9 @@
 package org.example.command;
 
+import org.apache.logging.log4j.Logger;
 import org.example.loader.ClassLoader;
 import org.example.test.TestRunner;
+import org.example.util.LoggerUtil;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
@@ -11,7 +13,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
 public class AnalyzeCommand extends Command {
-    
+    private static final Logger logger = LoggerUtil.getInstance().createLogger(AnalyzeCommand.class);
     private final ClassLoader classLoader;
     private final TestRunner testRunner;
     
@@ -24,7 +26,7 @@ public class AnalyzeCommand extends Command {
     @Override
     public boolean execute(String[] args) {
         if (args.length < 1) {
-            System.out.println("Error: Please provide a path or fully qualified class name");
+            logger.error("Error: Please provide a path or fully qualified class name");
             return true;
         }
         
@@ -37,7 +39,7 @@ public class AnalyzeCommand extends Command {
                 if (clazz != null) {
                     analyzeClass(clazz);
                 } else {
-                    System.out.println("Error: Class not found: " + path);
+                    logger.error("Error: Class not found: " + path);
                 }
             } else if (path.contains("/") || path.contains("\\") || path.endsWith(".class") || path.endsWith(".jar")) {
                 classLoader.addClassPath(path);
@@ -45,57 +47,57 @@ public class AnalyzeCommand extends Command {
                     analyzeClass(loadedClass);
                 }
             } else {
-                System.out.println("Error: Class not found or invalid path: " + path);
-                System.out.println("Please provide a fully qualified class name or a valid file/directory path");
+                logger.error("Error: Class not found or invalid path: " + path);
+                logger.info("Please provide a fully qualified class name or a valid file/directory path");
             }
             
             testRunner.printStatistics();
             return true;
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            logger.error("Error: " + e.getMessage());
             e.printStackTrace();
             return true;
         }
     }
     
     private void analyzeClass(Class<?> clazz) {
-        System.out.println("\n" + "=".repeat(80));
-        System.out.println("Class: " + clazz.getName());
-        System.out.println("-".repeat(80));
+        logger.info("\n" + "=".repeat(80));
+        logger.info("Class: " + clazz.getName());
+        logger.info("-".repeat(80));
 
-        System.out.println("Modifiers: " + Modifier.toString(clazz.getModifiers()));
+        logger.info("Modifiers: " + Modifier.toString(clazz.getModifiers()));
 
         if (clazz.getSuperclass() != null && !clazz.getSuperclass().equals(Object.class)) {
-            System.out.println("Superclass: " + clazz.getSuperclass().getName());
+            logger.info("Superclass: " + clazz.getSuperclass().getName());
         }
 
         if (clazz.getInterfaces().length > 0) {
-            System.out.println("Interfaces: " + Arrays.toString(
+            logger.info("Interfaces: " + Arrays.toString(
                 Arrays.stream(clazz.getInterfaces())
                     .map(Class::getName)
                     .toArray()
             ));
         }
 
-        System.out.println("\nFields:");
+        logger.info("\nFields:");
         for (Field field : clazz.getDeclaredFields()) {
-            System.out.println("- " + Modifier.toString(field.getModifiers()) + " " + 
-                             field.getType().getName() + " " + field.getName());
+            logger.info("- " + Modifier.toString(field.getModifiers()) + " " + 
+                     field.getType().getName() + " " + field.getName());
         }
 
-        System.out.println("\nConstructors:");
+        logger.info("\nConstructors:");
         for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
-            System.out.println("- " + Modifier.toString(constructor.getModifiers()) + " " + 
-                             constructor.getName().substring(constructor.getName().lastIndexOf('.') + 1) + "(" + 
-                             formatParameters(constructor.getParameterTypes()) + ")");
+            logger.info("- " + Modifier.toString(constructor.getModifiers()) + " " + 
+                     constructor.getName().substring(constructor.getName().lastIndexOf('.') + 1) + "(" + 
+                     formatParameters(constructor.getParameterTypes()) + ")");
         }
 
-        System.out.println("\nMethods:");
+        logger.info("\nMethods:");
         for (Method method : clazz.getDeclaredMethods()) {
-            System.out.println("- " + Modifier.toString(method.getModifiers()) + " " + 
-                             method.getReturnType().getName() + " " + 
-                             method.getName() + "(" + 
-                             formatParameters(method.getParameterTypes()) + ")");
+            logger.info("- " + Modifier.toString(method.getModifiers()) + " " + 
+                     method.getReturnType().getName() + " " + 
+                     method.getName() + "(" + 
+                     formatParameters(method.getParameterTypes()) + ")");
         }
         
         // Execute @Test
@@ -103,7 +105,7 @@ public class AnalyzeCommand extends Command {
             .anyMatch(method -> method.isAnnotationPresent(Test.class));
         
         if (hasTestAnnotation) {
-            System.out.println("\nRunning tests for: " + clazz.getName());
+            logger.info("\nRunning tests for: " + clazz.getName());
             testRunner.runTests(clazz);
         }
     }
