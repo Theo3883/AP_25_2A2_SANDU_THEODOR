@@ -13,14 +13,10 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         
         List<Command> commands = new ArrayList<>();
-        AnalyzeCommand analyzeCommand = new AnalyzeCommand(classLoader, testRunner);
-        commands.add(analyzeCommand);
-        
-        ListCommand listCommand = new ListCommand(classLoader);
-        commands.add(listCommand);
-        
-        ExitCommand exitCommand = new ExitCommand();
-        commands.add(exitCommand);
+        commands.add(new AnalyzeCommand(classLoader, testRunner));
+        commands.add(new ListCommand(classLoader));
+        commands.add(new BytecodeCommand(classLoader));
+        commands.add(new ExitCommand());
         
         HelpCommand helpCommand = new HelpCommand(commands);
         commands.add(helpCommand);

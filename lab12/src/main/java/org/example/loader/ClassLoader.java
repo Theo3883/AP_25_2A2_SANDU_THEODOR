@@ -1,5 +1,7 @@
 package org.example.loader;
 
+import org.example.compiler.JavaCompiler;
+
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -12,8 +14,10 @@ public class ClassLoader {
     private final List<Class<?>> loadedClasses = new ArrayList<>();
     private final List<String> classPaths = new ArrayList<>();
     private URLClassLoader urlClassLoader;
+    private final JavaCompiler javaCompiler;
 
     public ClassLoader() {
+        javaCompiler = new JavaCompiler();
         initializeClassLoader();
     }
 
@@ -53,6 +57,28 @@ public class ClassLoader {
     }
 
     public List<Class<?>> loadClasses() throws Exception {
+        List<String> javaFiles = new ArrayList<>();
+
+        for (String path : classPaths) {
+            File file = new File(path);
+            if (file.isDirectory()) {
+                collectJavaFilesFromDirectory(file, javaFiles);
+            } else if (path.endsWith(".java")) {
+                javaFiles.add(path);
+            }
+        }
+
+        if (!javaFiles.isEmpty()) {
+            System.out.println("Compiling " + javaFiles.size() + " Java files...");
+            boolean success = javaCompiler.compile(javaFiles);
+            if (!success) {
+                System.err.println("Failed to compile some Java files. See errors above.");
+            } else {
+                System.out.println("Compilation successful!");
+            }
+            initializeClassLoader();
+        }
+
         for (String path : classPaths) {
             File file = new File(path);
             if (file.isDirectory()) {
@@ -61,9 +87,56 @@ public class ClassLoader {
                 loadClassesFromJar(path);
             } else if (path.endsWith(".class")) {
                 loadClassFromFile(file);
+            } else if (path.endsWith(".java")) {
+                String className = getClassNameFromJavaFile(path);
+                if (className != null) {
+                    try {
+                        Class<?> clazz = urlClassLoader.loadClass(className);
+                        loadedClasses.add(clazz);
+                    } catch (ClassNotFoundException e) {
+                        System.err.println("Could not load compiled class: " + className);
+                    }
+                }
             }
         }
         return loadedClasses;
+    }
+
+    private void collectJavaFilesFromDirectory(File directory, List<String> javaFiles) {
+        File[] files = directory.listFiles();
+        if (files == null)
+            return;
+
+        for (File file : files) {
+            if (file.isDirectory()) {
+                collectJavaFilesFromDirectory(file, javaFiles);
+            } else if (file.getName().endsWith(".java")) {
+                javaFiles.add(file.getAbsolutePath());
+            }
+        }
+    }
+
+    public String getClassNameFromJavaFile(String javaFilePath) {
+        File file = new File(javaFilePath);
+        String fileName = file.getName();
+        String className = fileName.substring(0, fileName.lastIndexOf('.'));
+        
+        try {
+            List<String> lines = java.nio.file.Files.readAllLines(file.toPath());
+            for (String line : lines) {
+                line = line.trim();
+                if (line.startsWith("package ")) {
+                    String packageName = line.substring(8, line.indexOf(';'));
+                    return packageName + "." + className;
+                }
+            }
+            
+            // If no package declaration, return just the class name
+            return className;
+        } catch (Exception e) {
+            System.err.println("Error reading Java file: " + e.getMessage());
+            return null;
+        }
     }
 
     public Class<?> loadClassByName(String className) {
