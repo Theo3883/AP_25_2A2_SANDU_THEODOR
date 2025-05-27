@@ -9,7 +9,6 @@ import com.backend.demo.model.Country;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @Component

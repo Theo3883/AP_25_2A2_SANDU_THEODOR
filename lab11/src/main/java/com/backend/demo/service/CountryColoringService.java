@@ -30,7 +30,7 @@ public class CountryColoringService {
     @EventListener(ApplicationReadyEvent.class)
     public void resetAndAssignColorsOnStartup() {
         logger.info("Application started: Resetting and reassigning colors to countries");
-        resetColors();
+        countryService.resetAllColors();
         assignColorsToCountries();
     }
     
