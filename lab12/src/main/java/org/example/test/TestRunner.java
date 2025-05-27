@@ -1,4 +1,4 @@
-package org.example;
+package org.example.test;
 
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
@@ -60,4 +60,10 @@ public class TestRunner {
         System.out.println("Failed: " + failedTests);
         System.out.println("=".repeat(80));
     }
-} 
+    
+    public void reset() {
+        totalTests = 0;
+        passedTests = 0;
+        failedTests = 0;
+    }
+}
