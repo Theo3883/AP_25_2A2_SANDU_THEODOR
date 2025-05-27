@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        fetch('/api/colors/assign', {
+        fetch('/api/countries/assign-colors', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -85,10 +85,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 throw new Error('Failed to assign colors');
             }
-            return response.json();
+            
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            } else {
+                return { success: true, message: 'Operation completed' };
+            }
         })
         .then(data => {
-            showStatus(`Successfully assigned colors using ${data.colorsUsed} colors!`, 'success');
+            showStatus(data.message || 'Successfully assigned colors!', 'success');
             loadCountries();
         })
         .catch(error => {
@@ -105,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingElement.style.display = 'block';
         continentsContainer.innerHTML = '';
         
-        fetch('/api/colors/countries')
+        fetch('/api/countries/graph-data')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to load countries');
@@ -125,16 +131,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function displayCountriesByContinent(countries) {
         const continents = {};
+        const processedCountries = new Set();
         
         countries.forEach(country => {
-            const continent = country.continent || 'Other';
+            let continent = 'Other';
+            
+            if (country.continentName && country.continentName.trim() !== '') {
+                continent = country.continentName;
+            }
+            
             if (!continents[continent]) {
                 continents[continent] = [];
             }
-            continents[continent].push(country);
+            if (!processedCountries.has(country.id)) {
+                processedCountries.add(country.id);
+                continents[continent].push(country);
+            }
         });
         
-        console.log('Countries data:', countries);
+        continentsContainer.innerHTML = '';
+        
         Object.keys(continents).sort().forEach(continent => {
             const continentSection = document.createElement('div');
             continentSection.className = 'continent-section';

@@ -34,7 +34,6 @@ public class JwtTokenUtil {
         Date expiryDate = new Date(now.getTime() + expiration);
 
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)

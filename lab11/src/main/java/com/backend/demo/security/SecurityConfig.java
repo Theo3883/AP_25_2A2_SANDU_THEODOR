@@ -43,14 +43,7 @@ public class SecurityConfig {
                 .password(passwordEncoder().encode("api-secret"))
                 .roles("API_CLIENT")
                 .build();
-        
-        UserDetails adminClient = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("password"))
-                .roles("ADMIN")
-                .build();
-        
-        return new InMemoryUserDetailsManager(apiClient, adminClient);
+        return new InMemoryUserDetailsManager(apiClient);
     }
 
     @Bean
@@ -67,8 +60,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
                 
                 // Secure specific endpoints that need authentication
-                .requestMatchers("/api/colors/assign").hasAnyRole("ADMIN", "API_CLIENT")
-                .requestMatchers("/api/countries/assign-colors").hasAnyRole("ADMIN", "API_CLIENT")
+                .requestMatchers("/api/colors/assign").hasAnyRole("API_CLIENT")
+                .requestMatchers("/api/countries/assign-colors").hasAnyRole("API_CLIENT")
                 .anyRequest().authenticated()
             )
             .exceptionHandling(exception -> exception
