@@ -125,12 +125,13 @@
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            background-color: #fff;
-            border: 1px solid #ccc;
+            background-color: #4CAF50;
+            color: white;
+            border: 1px solid #45a049;
             border-radius: 4px;
         }
         .zoom-button:hover {
-            background-color: #f0f0f0;
+            background-color: #45a049;
         }
     </style>
 </head>
@@ -351,8 +352,8 @@
                         .attr("y2", d => d.target.y);
                     
                     node
-                        .attr("cx", d => d.x = Math.max(15, Math.min(width - 15, d.x)))
-                        .attr("cy", d => d.y = Math.max(15, Math.min(height - 15, d.y)));
+                        .attr("cx", d => d.x)
+                        .attr("cy", d => d.y);
                     
                     label
                         .attr("x", d => d.x)
