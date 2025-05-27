@@ -51,7 +51,7 @@ public class ClassLoader {
 
             urlClassLoader = new URLClassLoader(urls.toArray(new URL[0]), getClass().getClassLoader());
         } catch (Exception e) {
-            logger.error("Error initializing class loader: " + e.getMessage());
+            logger.error("Error initializing class loader: {}", e.getMessage());
         }
     }
 
@@ -72,7 +72,7 @@ public class ClassLoader {
         }
 
         if (!javaFiles.isEmpty()) {
-            logger.info("Compiling " + javaFiles.size() + " Java files...");
+            logger.info("Compiling {} Java files...", javaFiles.size());
             boolean success = javaCompiler.compile(javaFiles);
             if (!success) {
                 logger.error("Failed to compile some Java files. See errors above.");
@@ -97,7 +97,7 @@ public class ClassLoader {
                         Class<?> clazz = urlClassLoader.loadClass(className);
                         loadedClasses.add(clazz);
                     } catch (ClassNotFoundException e) {
-                        logger.error("Could not load compiled class: " + className);
+                        logger.error("Could not load compiled class: {}", className);
                     }
                 }
             }
@@ -133,11 +133,10 @@ public class ClassLoader {
                     return packageName + "." + className;
                 }
             }
-            
-            // If no package declaration, return just the class name
+
             return className;
         } catch (Exception e) {
-            logger.error("Error reading Java file: " + e.getMessage());
+            logger.error("Error reading Java file: {}", e.getMessage());
             return null;
         }
     }
@@ -164,7 +163,7 @@ public class ClassLoader {
         }
     }
 
-    public List<String> listAvailableClasses() throws Exception {
+    public List<String> listAvailableClasses() {
         List<String> availableClasses = new ArrayList<>();
         File targetClasses = new File("target/classes");
 
@@ -203,7 +202,7 @@ public class ClassLoader {
                 try {
                     urls.add(file.toURI().toURL());
                 } catch (Exception e) {
-                    logger.error("Error adding JAR to classpath: " + file.getAbsolutePath());
+                    logger.error("Error adding JAR to classpath: {}", file.getAbsolutePath());
                 }
             }
         }
@@ -234,13 +233,13 @@ public class ClassLoader {
                         try {
                             loadedClasses.add(urlClassLoader.loadClass(className));
                         } catch (Exception e) {
-                            logger.error("Error loading class " + className + ": " + e.getMessage());
+                            logger.error("Error loading class {}: {}", className, e.getMessage());
                         }
                     });
         }
     }
 
-    private void loadClassFromFile(File classFile) throws Exception {
+    private void loadClassFromFile(File classFile) {
         try {
             String absolutePath = classFile.getAbsolutePath();
             String classPath;
@@ -266,7 +265,7 @@ public class ClassLoader {
             Class<?> clazz = urlClassLoader.loadClass(classPath);
             loadedClasses.add(clazz);
         } catch (Exception e) {
-            logger.error("Error loading class from file " + classFile.getName() + ": " + e.getMessage());
+            logger.error("Error loading class from file {}: {}", classFile.getName(), e.getMessage());
         }
     }
 }
